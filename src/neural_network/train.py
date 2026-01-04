@@ -7,7 +7,8 @@ from tensorflow.keras import models
 from matplotlib import pyplot as plt
 
 from src.audio_features.types import AFTypes
-from src.neural_network.model import ExportModel, AF_Stratedgy
+from src.neural_network.model import ExportModel
+from src.neural_network.strategy.train_strategy import TrainStrategy
 from src.definitions import DURATION, FRAGMENT_LENGTH, EPOCHS, ASSETS_PATH, sr, frame_length, hop_length
 
 # Set the seed value for experiment reproducibility.
@@ -19,7 +20,8 @@ np.random.seed(seed)
 def train(af_type: AFTypes, show_plot=False):
   print(f'Training model for {af_type.value} audio_feature...', tf.executing_eagerly())
   af_type_value = af_type.value
-  strategy = AF_Stratedgy(sr=sr, frame_length=frame_length, hop_length=hop_length)
+  strategy = TrainStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
+  strategy.set_strategy(af_type)
   # Form data storage
   data_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'data_set_{}'.format(DURATION), 'train'))
   train_ds, val_ds = tf.keras.utils.audio_dataset_from_directory(

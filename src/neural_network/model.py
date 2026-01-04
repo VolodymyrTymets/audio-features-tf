@@ -1,10 +1,10 @@
 import tensorflow as tf
-from src.neural_network.strategy.af_strategy import AF_Stratedgy
+from src.neural_network.strategy.train_strategy_interface import ITrainStrategy
 from src.definitions import sr, FRAGMENT_LENGTH
 
 
 class ExportModel(tf.Module):
-  def __init__(self, model, strategy: AF_Stratedgy, label_names, fragment_length=FRAGMENT_LENGTH, ):
+  def __init__(self, model, strategy: ITrainStrategy, label_names, fragment_length=FRAGMENT_LENGTH, ):
     self.model = model
     self.label_names = label_names
     self.fragment_length = fragment_length
