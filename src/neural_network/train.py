@@ -6,8 +6,9 @@ from tensorflow.keras import layers
 from tensorflow.keras import models
 from matplotlib import pyplot as plt
 
-from src.neural_network.model import ExportModel, get_audio_feature, reshape
-from src.definitions import DURATION, FRAGMENT_LENGTH, EPOCHS, ASSETS_PATH
+from src.audio_features.types import AFTypes
+from src.neural_network.model import ExportModel, AF_Stratedgy
+from src.definitions import DURATION, FRAGMENT_LENGTH, EPOCHS, ASSETS_PATH, sr, frame_length, hop_length
 
 # Set the seed value for experiment reproducibility.
 seed = 42
@@ -15,24 +16,10 @@ tf.random.set_seed(seed)
 np.random.seed(seed)
 
 
-def squeeze(audio, labels):
-  audio = tf.squeeze(audio, axis=-1)
-  return audio, labels
-
-
-def ds_to_af(ds):
-  return ds.map(
-    map_func=lambda audio, label: (get_audio_feature(audio), label),
-    num_parallel_calls=tf.data.AUTOTUNE)
-
-def ds_reshape(ds):
-  return ds.map(
-    map_func=lambda audio, label: (reshape(audio), label),
-    num_parallel_calls=tf.data.AUTOTUNE)
-
-
-def train(show_plot=False):
-  print('Training model...', tf.executing_eagerly())
+def train(af_type: AFTypes, show_plot=False):
+  print(f'Training model for {af_type.value} audio_feature...', tf.executing_eagerly())
+  af_type_value = af_type.value
+  strategy = AF_Stratedgy(sr=sr, frame_length=frame_length, hop_length=hop_length)
   # Form data storage
   data_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'data_set_{}'.format(DURATION), 'train'))
   train_ds, val_ds = tf.keras.utils.audio_dataset_from_directory(
@@ -45,26 +32,24 @@ def train(show_plot=False):
   label_names = np.array(train_ds.class_names)
 
   # Prepare data - wave to spectrogram
-  train_ds = train_ds.map(squeeze, tf.data.AUTOTUNE)
-  val_ds = val_ds.map(squeeze, tf.data.AUTOTUNE)
+  train_ds = train_ds.map(strategy.squeeze_map, tf.data.AUTOTUNE)
+  val_ds = val_ds.map(strategy.squeeze_map, tf.data.AUTOTUNE)
   val_ds = val_ds.shard(num_shards=2, index=1)
-  # shape = _get_audio_feature_shape(train_ds.element_spec[0])
-  # print('shape:', shape)
 
-  train_spectrogram_ds = ds_to_af(train_ds)
-  val_spectrogram_ds = ds_to_af(val_ds)
+  train_ds = train_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
+  val_ds = val_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
 
-  train_spectrogram_ds = ds_reshape(train_spectrogram_ds)
-  val_spectrogram_ds = ds_reshape(val_spectrogram_ds)
+  train_ds = train_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)
+  val_ds = val_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)
 
   # Training model
-  train_spectrogram_ds = train_spectrogram_ds.cache().shuffle(
+  train_ds = train_ds.cache().shuffle(
     10000).prefetch(tf.data.AUTOTUNE)
-  val_spectrogram_ds = val_spectrogram_ds.cache().prefetch(tf.data.AUTOTUNE)
+  val_ds = val_ds.cache().prefetch(tf.data.AUTOTUNE)
 
   history = None
-  for example_spectrograms, example_spect_labels in train_spectrogram_ds.take(1):
-    input_shape = example_spectrograms.shape[1:]
+  for example, example_spect_labels in train_ds.take(1):
+    input_shape = example.shape[1:]
     num_labels = len(label_names)
     print('num_labels:', num_labels)
 
@@ -72,7 +57,7 @@ def train(show_plot=False):
     norm_layer = layers.Normalization()
     # Fit the state of the layer to the spectrograms
     # with `Normalization.adapt`.
-    norm_layer.adapt(data=train_spectrogram_ds.map(
+    norm_layer.adapt(data=train_ds.map(
       map_func=lambda spec, label: spec))
 
     model = models.Sequential([
@@ -102,16 +87,16 @@ def train(show_plot=False):
     )
 
     history = model.fit(
-      train_spectrogram_ds,
-      validation_data=val_spectrogram_ds,
+      train_ds,
+      validation_data=val_ds,
       epochs=EPOCHS,
       callbacks=tf.keras.callbacks.EarlyStopping(verbose=1, patience=2),
     )
 
 
     # Save model
-    export = ExportModel(model=model, label_names=label_names, fragment_length=FRAGMENT_LENGTH)
-    model_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'models', 'm_{}_{}'.format(DURATION, FRAGMENT_LENGTH)))
+    export = ExportModel(model=model, strategy=strategy, label_names=label_names, fragment_length=FRAGMENT_LENGTH)
+    model_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'models', 'm_{}_{}'.format(DURATION, af_type_value)))
     tf.saved_model.save(export, model_dir)
 
     print('Model is saved to: {}'.format(model_dir))
