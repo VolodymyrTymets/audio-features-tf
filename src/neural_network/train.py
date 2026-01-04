@@ -6,7 +6,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import models
 from matplotlib import pyplot as plt
 
-from src.neural_network.model import ExportModel, get_spectrogram
+from src.neural_network.model import ExportModel, get_audio_feature, reshape
 from src.definitions import DURATION, FRAGMENT_LENGTH, EPOCHS, ASSETS_PATH
 
 # Set the seed value for experiment reproducibility.
@@ -20,9 +20,14 @@ def squeeze(audio, labels):
   return audio, labels
 
 
-def ds_to_spectrogram(ds):
+def ds_to_af(ds):
   return ds.map(
-    map_func=lambda audio, label: (get_spectrogram(audio), label),
+    map_func=lambda audio, label: (get_audio_feature(audio), label),
+    num_parallel_calls=tf.data.AUTOTUNE)
+
+def ds_reshape(ds):
+  return ds.map(
+    map_func=lambda audio, label: (reshape(audio), label),
     num_parallel_calls=tf.data.AUTOTUNE)
 
 
@@ -43,9 +48,14 @@ def train(show_plot=False):
   train_ds = train_ds.map(squeeze, tf.data.AUTOTUNE)
   val_ds = val_ds.map(squeeze, tf.data.AUTOTUNE)
   val_ds = val_ds.shard(num_shards=2, index=1)
+  # shape = _get_audio_feature_shape(train_ds.element_spec[0])
+  # print('shape:', shape)
 
-  train_spectrogram_ds = ds_to_spectrogram(train_ds)
-  val_spectrogram_ds = ds_to_spectrogram(train_ds)
+  train_spectrogram_ds = ds_to_af(train_ds)
+  val_spectrogram_ds = ds_to_af(val_ds)
+
+  train_spectrogram_ds = ds_reshape(train_spectrogram_ds)
+  val_spectrogram_ds = ds_reshape(val_spectrogram_ds)
 
   # Training model
   train_spectrogram_ds = train_spectrogram_ds.cache().shuffle(
@@ -56,6 +66,7 @@ def train(show_plot=False):
   for example_spectrograms, example_spect_labels in train_spectrogram_ds.take(1):
     input_shape = example_spectrograms.shape[1:]
     num_labels = len(label_names)
+    print('num_labels:', num_labels)
 
     # Instantiate the `tf.keras.layers.Normalization` layer.
     norm_layer = layers.Normalization()
@@ -87,7 +98,7 @@ def train(show_plot=False):
       optimizer=tf.keras.optimizers.Adam(),
       loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
       metrics=['accuracy'],
-      # run_eagerly=True
+      run_eagerly=True
     )
 
     history = model.fit(
