@@ -7,6 +7,7 @@ from src.audio_features.audio_features import FrequencyDomainFeatures
 from src.definitions import ASSETS_PATH
 from src.neural_network.strategy.strategies.strategy_interface import IAFStrategy
 from src.audio_features.types import AFTypes
+from src.files import Files
 
 
 class STFTStrategy(IAFStrategy):
@@ -14,12 +15,12 @@ class STFTStrategy(IAFStrategy):
     self.features = FrequencyDomainFeatures()
     self.frame_length = frame_length
     self.hop_length = hop_length
+    self.files = Files()
 
   def _get_image_path(self, label: str):
     file_name = f"stft_{uuid.uuid4()}.png"
-    directory = pathlib.Path(os.path.join(ASSETS_PATH, '__af__', AFTypes.stft.value, label))
-    if not os.path.exists(directory):
-      os.makedirs(directory)
+    directory = self.files.join(ASSETS_PATH, '__af__', AFTypes.stft.value, label)
+    self.files.create_folder(directory)
     return os.path.join(directory, file_name)
 
   def get_audio_feature(self, wave: np.ndarray):
@@ -28,10 +29,10 @@ class STFTStrategy(IAFStrategy):
   def save_audio_feature(self, stft: np.ndarray, label: str):
     file_path = self._get_image_path(label=label)
     # Normalize to 0-255 range
-    if stft.max() > 0:
-      normalized = (stft / stft.max() * 255).astype(np.uint8)
-    else:
-      normalized = stft.astype(np.uint8)
+    # if stft.max() > 0:
+    #   normalized = (stft / stft.max() * 255).astype(np.uint8)
+    # else:
+    normalized = stft.astype(np.uint8)
 
     # Create image and save
     img = Image.fromarray(normalized)

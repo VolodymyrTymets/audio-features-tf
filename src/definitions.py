@@ -6,5 +6,5 @@ FRAGMENT_LENGTH = int(sr / (1 / DURATION))
 
 EPOCHS = 10
 
-frame_length = 1024
+frame_length = 512
 hop_length = frame_length // 4
