@@ -1,3 +1,4 @@
+import csv
 import librosa
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,6 +20,20 @@ def get_wave(file_full_path):
   chunks = [x for x in to_chunks(waveform, int(FRAGMENT_LENGTH))]
   return chunks
 
+def save_result(labels, af_type, mean_prediction_by_label, mean):
+  data = [
+    np.concatenate((["AF_type"], labels, ['mean']), axis=0),
+    np.concatenate(([af_type.value], mean_prediction_by_label, [mean]), axis=0),
+  ]
+  print('Saving report...')
+  print(data[0])
+  print(data[1])
+
+  with open(files.join(files.ASSETS_PATH, '__af__', 'report.csv'), 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerows(data)
+  print('Report saved!')
+
 def valid(af_type: AFTypes, show_plot=False):
   model_dir = files.join(files.ASSETS_PATH, 'models', f'm_{DURATION}_{af_type.value}')
   model = tf.saved_model.load(model_dir)
@@ -38,27 +53,28 @@ def valid(af_type: AFTypes, show_plot=False):
       waves.append(chunks)
       names.append(file)
 
-    for chunks in waves:
+    for i, chunks in enumerate(waves):
       chunk_prediction = []
       for wave in chunks:
         try:
           x = tf.convert_to_tensor(wave, dtype=tf.float32)
           waveform = x[tf.newaxis, ...]
           result = model(tf.constant(waveform))
-          prediction = result['predictions']
-          chunk_prediction.append(tf.nn.softmax(prediction[0]).numpy()[0])
+          prediction = tf.nn.softmax(result['predictions']).numpy()[0]
+          label_names = np.array(result['label_names'])
+          label_names = label_names.astype(str)
+          label_index, = np.where(label_names == label)
+          chunk_prediction.append(prediction[label_index])
         except Exception as e:
-          print('ERROR:', e)
-          chunk_prediction.append(0)
-      predictions.append(np.mean(chunk_prediction))
+          continue
+      mean = np.mean(chunk_prediction)
+      predictions.append(mean)
     predictions_by_label.append(predictions)
 
 
   mean_prediction_by_label =  [np.mean(prediction) * 100 for prediction in predictions_by_label]
-  for i, prediction in enumerate(mean_prediction_by_label):
-    print(labels[i], '->', prediction)
-  total = np.mean(predictions_by_label)
-  print('total ->', total)
+  total = np.mean(predictions_by_label) * 100
+  save_result(labels, af_type, mean_prediction_by_label, total)
 
   if show_plot == True:
     plt.figure(figsize=(12,2))

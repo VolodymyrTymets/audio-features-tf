@@ -75,4 +75,7 @@ def valid_record(af_type: AFTypes, show_plot=False):
     ax.legend(
       [Line2D([0, 1], [0, 1], color='blue'), Line2D([0, 1], [0, 1], color='green'), Line2D([0, 1], [0, 1], color='red')],
       ['Noise', 'Breath', 'Stimulation'])
-    plt.show()
+    # plt.show()
+    dir_name = files.join(files.ASSETS_PATH, '__af__', af_type.stft.value, 'records')
+    files.create_folder(dir_name)
+    plt.savefig(files.join(dir_name, file.replace('.wav', '.png')))

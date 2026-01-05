@@ -8,7 +8,7 @@ def main():
   train(AFTypes.stft, show_plot=False)
   print("Training finished.")
   print("Starting validation...")
-  valid(AFTypes.stft, show_plot=True)
+  valid(AFTypes.stft, show_plot=False)
   print("End validation.")
   print("Starting validation of record...")
   valid_record(AFTypes.stft, show_plot=True)
