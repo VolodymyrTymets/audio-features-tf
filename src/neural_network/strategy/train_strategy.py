@@ -4,6 +4,7 @@ import numpy as np
 from src.audio_features.audio_features import FrequencyDomainFeatures
 from src.audio_features.types import AFTypes
 from src.definitions import FRAGMENT_LENGTH
+from src.neural_network.strategy.strategies.fft_strategy import FFTStrategy
 from src.neural_network.strategy.strategies.stft_strategy import STFTStrategy
 from src.neural_network.strategy.strategies.strategy_interface import IAFStrategy
 from src.neural_network.strategy.train_strategy_interface import ITrainStrategy
@@ -19,6 +20,7 @@ class TrainStrategy(ITrainStrategy):
     self.hop_length = hop_length
     self.type = type
     self.stft_strategy = STFTStrategy(frame_length, hop_length)
+    self.fft_strategy = FFTStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.strategy: IAFStrategy = self.stft_strategy
     self.shape = None
 
@@ -43,10 +45,13 @@ class TrainStrategy(ITrainStrategy):
     return af
 
   def set_strategy(self, strategy_type: AFTypes):
+    print(f"Setting strategy to {strategy_type.value}")
     if strategy_type.value == AFTypes.stft.value:
       self.strategy = self.stft_strategy
+    elif strategy_type.value == AFTypes.fft.value:
+      self.strategy = self.fft_strategy
     else:
-      raise ValueError(f"Unknown strategy type: {strategy_type}")
+      raise ValueError(f"Unknown strategy type: {strategy_type.value}")
     self.shape = self._calculate_shape()
 
 
@@ -62,6 +67,7 @@ class TrainStrategy(ITrainStrategy):
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def reshape(self, i):
+    print('Reshaping audio feature...', i.shape)
     w, h = self.shape
     return tf.reshape(i, (-1, w, h, 1))
 

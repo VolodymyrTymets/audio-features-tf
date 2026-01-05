@@ -29,7 +29,7 @@ def save_result(labels, af_type, mean_prediction_by_label, mean):
   print(data[0])
   print(data[1])
 
-  with open(files.join(files.ASSETS_PATH, '__af__', 'report.csv'), 'w', newline='') as file:
+  with open(files.join(files.ASSETS_PATH, '__af__', af_type.value, 'report.csv'), 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerows(data)
   print('Report saved!')
