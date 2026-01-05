@@ -20,8 +20,7 @@ np.random.seed(seed)
 def train(af_type: AFTypes, show_plot=False):
   print(f'Training model for {af_type.value} audio_feature...', tf.executing_eagerly())
   af_type_value = af_type.value
-  strategy = TrainStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
-  strategy.set_strategy(af_type)
+
   # Form data storage
   data_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'data_set_{}'.format(DURATION), 'train'))
   train_ds, val_ds = tf.keras.utils.audio_dataset_from_directory(
@@ -33,13 +32,18 @@ def train(af_type: AFTypes, show_plot=False):
     subset='both')
   label_names = np.array(train_ds.class_names)
 
-  # Prepare data - wave to spectrogram
+  strategy = TrainStrategy(label_names=label_names, sr=sr, frame_length=frame_length, hop_length=hop_length)
+  strategy.set_strategy(af_type)
+
+  # Prepare data - wave to audio feature
   train_ds = train_ds.map(strategy.squeeze_map, tf.data.AUTOTUNE)
   val_ds = val_ds.map(strategy.squeeze_map, tf.data.AUTOTUNE)
   val_ds = val_ds.shard(num_shards=2, index=1)
 
   train_ds = train_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
   val_ds = val_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
+
+  train_ds = train_ds.map(strategy.save_audio_feature_map, tf.data.AUTOTUNE)
 
   train_ds = train_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)
   val_ds = val_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)
@@ -53,7 +57,6 @@ def train(af_type: AFTypes, show_plot=False):
   for example, example_spect_labels in train_ds.take(1):
     input_shape = example.shape[1:]
     num_labels = len(label_names)
-    print('num_labels:', num_labels)
 
     # Instantiate the `tf.keras.layers.Normalization` layer.
     norm_layer = layers.Normalization()

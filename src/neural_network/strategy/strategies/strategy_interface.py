@@ -6,3 +6,7 @@ class IAFStrategy(ABC):
   @abstractmethod
   def get_audio_feature(self, wave: np.ndarray):
     pass
+
+  @abstractmethod
+  def save_audio_feature(self, af: np.ndarray, label: str):
+    pass
