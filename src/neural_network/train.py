@@ -1,5 +1,6 @@
 import os
 import pathlib
+import csv
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -10,11 +11,52 @@ from src.audio_features.types import AFTypes
 from src.neural_network.model import ExportModel
 from src.neural_network.strategy.train_strategy import TrainStrategy
 from src.definitions import DURATION, FRAGMENT_LENGTH, EPOCHS, ASSETS_PATH, sr, frame_length, hop_length
+from src.files import Files
+
+files = Files()
 
 # Set the seed value for experiment reproducibility.
 seed = 42
 tf.random.set_seed(seed)
 np.random.seed(seed)
+
+def save_history(history, metrics, af_type):
+  plt.figure(figsize=(16, 6))
+  plt.subplot(1, 2, 1)
+  plt.plot(history.epoch, metrics['loss'], metrics['val_loss'])
+  plt.legend(['loss', 'val_loss'])
+  plt.ylim([0, max(plt.ylim())])
+  plt.xlabel('Epoch')
+  plt.ylabel('Loss [CrossEntropy]')
+
+  plt.subplot(1, 2, 2)
+  plt.plot(history.epoch, 100 * np.array(metrics['accuracy']), 100 * np.array(metrics['val_accuracy']))
+  plt.legend(['accuracy', 'val_accuracy'])
+  plt.ylim([0, 100])
+  plt.xlabel('Epoch')
+  plt.ylabel('Accuracy [%]')
+
+  dir_name = files.join(files.ASSETS_PATH, '__af__', af_type.value)
+  files.create_folder(dir_name)
+  plt.savefig(files.join(dir_name, 'training_history.png'))
+
+def save_metrics(metrics, af_type):
+  loss = metrics['loss']
+  val_loss = metrics['val_loss']
+  accuracy = metrics['accuracy'] * 100
+  val_accuracy = metrics['val_accuracy'] * 100
+  data = [
+    ['loss', 'val_loss', 'accuracy', 'val_accuracy'],
+  ] + [[los, val_loss[i], accuracy[i], val_accuracy[i]] for i, los in enumerate(loss) ]
+  print('Saving report...')
+  dir_path = files.join(files.ASSETS_PATH, '__af__', af_type.value)
+  files.create_folder(dir_path)
+
+  with open(files.join(dir_path, f'{af_type.value}_metics.csv'), 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerows(data)
+  print('Report saved!')
+
 
 
 def train(af_type: AFTypes, show_plot=False, save_af=False):
@@ -106,21 +148,10 @@ def train(af_type: AFTypes, show_plot=False, save_af=False):
     tf.saved_model.save(export, model_dir)
 
     print('Model is saved to: {}'.format(model_dir))
-  if show_plot:
-    metrics = history.history
-    plt.figure(figsize=(16, 6))
-    plt.subplot(1, 2, 1)
-    plt.plot(history.epoch, metrics['loss'], metrics['val_loss'])
-    plt.legend(['loss', 'val_loss'])
-    plt.ylim([0, max(plt.ylim())])
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss [CrossEntropy]')
 
-    plt.subplot(1, 2, 2)
-    plt.plot(history.epoch, 100 * np.array(metrics['accuracy']), 100 * np.array(metrics['val_accuracy']))
-    plt.legend(['accuracy', 'val_accuracy'])
-    plt.ylim([0, 100])
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy [%]')
+    save_history(history, metrics=history.history, af_type=af_type)
+    save_metrics(history.history, af_type=af_type)
 
-    plt.show()
+
+
+
