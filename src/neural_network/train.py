@@ -17,7 +17,7 @@ tf.random.set_seed(seed)
 np.random.seed(seed)
 
 
-def train(af_type: AFTypes, show_plot=False):
+def train(af_type: AFTypes, show_plot=False, save_af=False):
   print(f'Training model for {af_type.value} audio_feature...', tf.executing_eagerly())
   af_type_value = af_type.value
 
@@ -43,7 +43,8 @@ def train(af_type: AFTypes, show_plot=False):
   train_ds = train_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
   val_ds = val_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
 
-  train_ds = train_ds.map(strategy.save_audio_feature_map, tf.data.AUTOTUNE)
+  if save_af is True:
+    train_ds = train_ds.map(strategy.save_audio_feature_map, tf.data.AUTOTUNE)
 
   train_ds = train_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)
   val_ds = val_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)

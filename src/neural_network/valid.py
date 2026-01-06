@@ -29,7 +29,10 @@ def save_result(labels, af_type, mean_prediction_by_label, mean):
   print(data[0])
   print(data[1])
 
-  with open(files.join(files.ASSETS_PATH, '__af__', af_type.value, 'report.csv'), 'w', newline='') as file:
+  dir_path = files.join(files.ASSETS_PATH, '__af__', af_type.value)
+  files.create_folder(dir_path)
+
+  with open(files.join(dir_path, 'report.csv'), 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerows(data)
   print('Report saved!')
@@ -64,6 +67,7 @@ def valid(af_type: AFTypes, show_plot=False):
           label_names = np.array(result['label_names'])
           label_names = label_names.astype(str)
           label_index, = np.where(label_names == label)
+          # print(f'{names[i]} - {label} - {label_index} - {label_names} -', prediction.astype(float))
           chunk_prediction.append(prediction[label_index])
         except Exception as e:
           continue
@@ -73,7 +77,7 @@ def valid(af_type: AFTypes, show_plot=False):
 
 
   mean_prediction_by_label =  [np.mean(prediction) * 100 for prediction in predictions_by_label]
-  total = np.mean(predictions_by_label) * 100
+  total = np.mean(mean_prediction_by_label)
   save_result(labels, af_type, mean_prediction_by_label, total)
 
   if show_plot == True:
