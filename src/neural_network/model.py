@@ -4,19 +4,19 @@ from src.definitions import sr, FRAGMENT_LENGTH
 
 
 class ExportModel(tf.Module):
-  def __init__(self, model, strategy: ITrainStrategy, label_names, fragment_length=FRAGMENT_LENGTH, ):
+  def __init__(self, model, input_shape, label_names,):
     self.model = model
     self.label_names = label_names
-    self.fragment_length = fragment_length
-    self._strategy = strategy
+    self.input_shape = input_shape
 
     self.__call__.get_concrete_function(
-      x=tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32))
+      x=tf.TensorSpec(shape=(128, 69), dtype=tf.float32))
 
   @tf.function
   def __call__(self, x):
-    x = self._strategy.get_audio_feature(x)
-    x = self._strategy.reshape(x)
+    w, h = self.input_shape[0], self.input_shape[1]
+    x = tf.reshape(x, (-1, w, h, 1))
+    print('model input shape-->', x.shape)
     result = self.model(x, training=False)
 
     class_ids = tf.argmax(result, axis=-1)

@@ -5,13 +5,21 @@ import numpy as np
 import tensorflow as tf
 
 from src.audio_features.types import AFTypes
-from src.definitions import DURATION, FRAGMENT_LENGTH
+from src.definitions import DURATION, FRAGMENT_LENGTH, frame_length, hop_length
 from src.files import Files
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
 
+from src.neural_network.strategy.af_strategy import AFStrategy
+
 files = Files()
+
+
+def pad_array(arr, length):
+  if len(arr) < length:
+    return np.pad(arr, (0, length - len(arr)), 'constant', constant_values=0)
+  return arr
 
 def to_chunks(lst, n):
   """Yield successive n-sized chunks from lst."""
@@ -20,8 +28,7 @@ def to_chunks(lst, n):
 
 def get_chunk_label_by_model(model, wave):
   x = tf.convert_to_tensor(wave, dtype=tf.float32)
-  waveform = x[tf.newaxis, ...]
-  result = model(tf.constant(waveform))
+  result = model(tf.constant(x))
   label_names = np.array(result['label_names'])
   prediction = tf.nn.softmax(result['predictions']).numpy()[0]
   max_value = max(prediction)
@@ -42,6 +49,7 @@ def valid_record(af_type: AFTypes, show_plot=False):
     waveform, sr = librosa.load(file_path)
     chunks = [x for x in to_chunks(waveform, int(FRAGMENT_LENGTH))]
     chunks_n = to_chunks(waveform, int(FRAGMENT_LENGTH))
+    strategy = AFStrategy(strategy_type=af_type, sr=sr, frame_length=frame_length, hop_length=hop_length)
     # Form segments for collection of lines
     segments = []
     linecolors = []
@@ -54,9 +62,12 @@ def valid_record(af_type: AFTypes, show_plot=False):
         x = x + 1
       segments.append(lineN)
       try:
-        line_label = get_chunk_label_by_model(model, chunk_n)
-      except:
+        signal = pad_array(chunk_n, FRAGMENT_LENGTH)
+        af = strategy.get_audio_feature(signal=signal)
+        line_label = get_chunk_label_by_model(model, af)
+      except Exception as e:
         line_label = 'noise'
+        print(e)
       color = 'red' if 'stimulation' in str(line_label) else 'blue'
       color = 'green' if 'breath' in str(line_label) else color
       linecolors.append(color)
