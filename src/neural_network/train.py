@@ -143,6 +143,7 @@ def train(af_type: AFTypes, show_plot=False, save_af=False):
 
 
     # Save model
+    print('Saving model...')
     export = ExportModel(model=model, label_names=label_names, input_shape=input_shape)
     model_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'models', 'm_{}_{}'.format(DURATION, af_type_value)))
     tf.saved_model.save(export, model_dir)

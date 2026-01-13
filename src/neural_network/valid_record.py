@@ -43,8 +43,6 @@ def valid_record(af_type: AFTypes, show_plot=False):
   model = tf.saved_model.load(model_dir)
   files_path = files.join(files.ASSETS_PATH, 'test', 'records')
   for file in files.get_only_files(files_path):
-
-
     file_path = os.path.join(files_path, file)
     waveform, sr = librosa.load(file_path)
     chunks = [x for x in to_chunks(waveform, int(FRAGMENT_LENGTH))]
