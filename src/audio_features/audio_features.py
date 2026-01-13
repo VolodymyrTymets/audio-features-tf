@@ -93,7 +93,6 @@ class FrequencyDomainFeatures:
     """Calculate band energy ratio with a given split frequency."""
 
     split_frequency_bin = self._calculate_split_frequency_bin(sr, split_frequency, len(stft[0]))
-    print(split_frequency_bin)
     band_energy_ratio = []
 
     # calculate power spectrogram
