@@ -59,7 +59,7 @@ def save_metrics(metrics, af_type):
 
 
 
-def train(af_type: AFTypes, show_plot=False, save_af=False):
+def train(af_type: AFTypes, save_af=False):
   print(f'Training model for {af_type.value} audio_feature...', tf.executing_eagerly())
   af_type_value = af_type.value
 

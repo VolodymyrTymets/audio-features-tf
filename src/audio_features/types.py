@@ -5,3 +5,4 @@ class AFTypes(Enum):
   stft = 'stft'
   fft = 'fft'
   mel = 'mel'
+  mfcc = 'mfcc'

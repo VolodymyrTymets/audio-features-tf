@@ -8,3 +8,5 @@ EPOCHS = 10
 
 frame_length = 512
 hop_length = frame_length // 4
+n_mels = 128
+n_mfcc = 10

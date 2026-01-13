@@ -5,10 +5,10 @@ from src.neural_network.valid_record import valid_record
 # from src.neural_network.filter_data_set import filter_data_set
 
 def main():
-  audio_features = [AFTypes.mel, AFTypes.fft, AFTypes.stft]
+  audio_features = [AFTypes.mfcc, AFTypes.mel]
   for af_type in audio_features:
     print("Starting training...")
-    train(af_type, show_plot=False, save_af=False)
+    train(af_type, save_af=True)
     print("Training finished.")
 
     print("Starting validation of record...")

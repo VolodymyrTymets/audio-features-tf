@@ -5,6 +5,7 @@ from src.audio_features.types import AFTypes
 from src.neural_network.strategy.strategies.fft_strategy import FFTStrategy
 from src.neural_network.strategy.strategies.stft_strategy import STFTStrategy
 from src.neural_network.strategy.strategies.mel_strategy import MelStrategy
+from src.neural_network.strategy.strategies.mfcc_strategy import MFCCStrategy
 
 
 class AFStrategy:
@@ -13,12 +14,15 @@ class AFStrategy:
     self.stft_strategy = STFTStrategy(frame_length, hop_length)
     self.fft_strategy = FFTStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.mel_strategy = MelStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
+    self.mfcc_strategy = MFCCStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     if strategy_type.value == AFTypes.stft.value:
       self.strategy = self.stft_strategy
     elif strategy_type.value == AFTypes.fft.value:
       self.strategy = self.fft_strategy
     elif strategy_type.value == AFTypes.mel.value:
       self.strategy = self.mel_strategy
+    elif strategy_type.value == AFTypes.mfcc.value:
+      self.strategy = self.mfcc_strategy
     else:
       raise ValueError(f"Unknown strategy type: {strategy_type.value}")
 

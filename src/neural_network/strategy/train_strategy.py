@@ -7,11 +7,11 @@ from src.definitions import FRAGMENT_LENGTH
 from src.neural_network.strategy.strategies.fft_strategy import FFTStrategy
 from src.neural_network.strategy.strategies.stft_strategy import STFTStrategy
 from src.neural_network.strategy.strategies.mel_strategy import MelStrategy
+from src.neural_network.strategy.strategies.mfcc_strategy import MFCCStrategy
 from src.neural_network.strategy.strategies.strategy_interface import IAFStrategy
 from src.neural_network.strategy.train_strategy_interface import ITrainStrategy
 
 
-# todo: rename to train_strategy
 class TrainStrategy(ITrainStrategy):
   def __init__(self, label_names: List[str], sr: int, frame_length: int, hop_length: int):
     self.features = FrequencyDomainFeatures()
@@ -23,6 +23,7 @@ class TrainStrategy(ITrainStrategy):
     self.stft_strategy = STFTStrategy(frame_length, hop_length)
     self.fft_strategy = FFTStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.mel_strategy = MelStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
+    self.mfcc_strategy = MFCCStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.strategy: IAFStrategy = self.stft_strategy
     self.shape = None
 
@@ -53,6 +54,8 @@ class TrainStrategy(ITrainStrategy):
       self.strategy = self.fft_strategy
     elif strategy_type.value == AFTypes.mel.value:
       self.strategy = self.mel_strategy
+    elif strategy_type.value == AFTypes.mfcc.value:
+      self.strategy = self.mfcc_strategy
     else:
       raise ValueError(f"Unknown strategy type: {strategy_type.value}")
     self.shape = self._calculate_shape()
