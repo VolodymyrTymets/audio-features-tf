@@ -2,7 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import uuid
-from PIL import Image
+from PIL import Image, ImageDraw
 from src.audio_features.audio_features import FrequencyDomainFeatures
 from src.definitions import ASSETS_PATH
 from src.neural_network.strategy.strategies.strategy_interface import IAFStrategy
@@ -21,6 +21,22 @@ class BaseStrategy(IAFStrategy):
     directory = self.files.join(ASSETS_PATH, '__af__', self.af_type.value, label)
     self.files.create_folder(directory)
     return os.path.join(directory, file_name)
+
+  def _signal_to_image_matrix(self, signal, height=128, width=None):
+    n = len(signal)
+    if width is None:
+      width = n  # one column per sample (can down/up-sample)
+    # resample signal to width
+    x = np.linspace(0, n - 1, width).astype(int)
+    sig = signal[x]
+    # normalize to [0, height-1]
+    sig_norm = (sig - sig.min()) / (sig.max() - sig.min() + 1e-12)
+    rows = (height - 1 - (sig_norm * (height - 1))).astype(int)
+    img = Image.new('L', (width, height), 255)  # white background
+    draw = ImageDraw.Draw(img)
+    for i in range(width - 1):
+      draw.line((i, rows[i], i + 1, rows[i + 1]), fill=0)
+    return np.array(img)
 
   def save_audio_feature(self, matrix: np.ndarray, label: str):
     file_path = self._get_image_path(label=label)

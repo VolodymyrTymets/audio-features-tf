@@ -2,6 +2,7 @@
 import numpy as np
 from src.audio_features.audio_features import FrequencyDomainFeatures
 from src.audio_features.types import AFTypes
+from src.neural_network.strategy.strategies.wave_strategy import WaveStrategy
 from src.neural_network.strategy.strategies.fft_strategy import FFTStrategy
 from src.neural_network.strategy.strategies.stft_strategy import STFTStrategy
 from src.neural_network.strategy.strategies.mel_strategy import MelStrategy
@@ -11,10 +12,11 @@ from src.neural_network.strategy.strategies.mfcc_strategy import MFCCStrategy
 class AFStrategy:
   def __init__(self, strategy_type: AFTypes, sr: int, frame_length: int, hop_length: int):
     self.features = FrequencyDomainFeatures()
-    self.stft_strategy = STFTStrategy(frame_length, hop_length)
+    self.stft_strategy = STFTStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.fft_strategy = FFTStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.mel_strategy = MelStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.mfcc_strategy = MFCCStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
+    self.wave_strategy = WaveStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     if strategy_type.value == AFTypes.stft.value:
       self.strategy = self.stft_strategy
     elif strategy_type.value == AFTypes.fft.value:
@@ -23,6 +25,8 @@ class AFStrategy:
       self.strategy = self.mel_strategy
     elif strategy_type.value == AFTypes.mfcc.value:
       self.strategy = self.mfcc_strategy
+    elif strategy_type.value == AFTypes.wave.value:
+      self.strategy = self.wave_strategy
     else:
       raise ValueError(f"Unknown strategy type: {strategy_type.value}")
 
