@@ -20,12 +20,13 @@ from src.neural_network.strategy.train_strategy_interface import ITrainStrategy
 
 
 class TrainStrategy(ITrainStrategy):
-  def __init__(self, label_names: List[str], sr: int, frame_length: int, hop_length: int):
+  def __init__(self, label_names: List[str], sr: int, frame_length: int, hop_length: int, n_mels: int):
     self.features = FrequencyDomainFeatures()
     self.label_names = label_names
     self.sr = sr
     self.frame_length = frame_length
     self.hop_length = hop_length
+    self.n_mels = n_mels
     self.type = type
     self.wave_strategy = WaveStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.ae_strategy = AEStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
@@ -36,7 +37,7 @@ class TrainStrategy(ITrainStrategy):
     self.ber_strategy = BERtrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.sc_strategy = SCStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.bw_strategy = BWtrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
-    self.mel_strategy = MelStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
+    self.mel_strategy = MelStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length, sub_folder=f'{n_mels}', n_mels=n_mels)
     self.mfcc_strategy = MFCCStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.strategy: IAFStrategy = self.stft_strategy
     self.shape = None

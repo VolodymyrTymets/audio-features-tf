@@ -9,16 +9,17 @@ from src.neural_network.strategy.strategies.strategy_interface import IAFStrateg
 from src.files import Files
 
 class BaseStrategy(IAFStrategy):
-  def __init__(self, sr: int, frame_length: int, hop_length: int):
+  def __init__(self, sr: int, frame_length: int, hop_length: int, sub_folder: str = ''):
     self.features = FrequencyDomainFeatures()
     self.frame_length = frame_length
     self.hop_length = hop_length
     self.sr = sr
     self.files = Files()
+    self.sub_folder = sub_folder
 
   def _get_image_path(self, label: str):
     file_name = f"{self.af_type.value}_{uuid.uuid4()}.png"
-    directory = self.files.join(ASSETS_PATH, '__af__', self.af_type.value, label)
+    directory = self.files.join(ASSETS_PATH, '__af__', self.af_type.value, self.sub_folder, label)
     self.files.create_folder(directory)
     return os.path.join(directory, file_name)
 

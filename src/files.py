@@ -33,7 +33,10 @@ class Files:
 
   def create_folder(self, directory: str):
     if not os.path.exists(directory):
-      os.makedirs(directory)
+      try:
+        os.makedirs(directory)
+      except OSError:
+        print ('Error: Creating directory. ' +  directory)
 
   def remove(self, path):
     os.remove(path)

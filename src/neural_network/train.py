@@ -20,7 +20,7 @@ seed = 42
 tf.random.set_seed(seed)
 np.random.seed(seed)
 
-def save_history(history, metrics, af_type):
+def save_history(history, metrics, af_type, sub_folder):
   plt.figure(figsize=(16, 6))
   plt.subplot(1, 2, 1)
   plt.plot(history.epoch, metrics['loss'], metrics['val_loss'])
@@ -36,11 +36,11 @@ def save_history(history, metrics, af_type):
   plt.xlabel('Epoch')
   plt.ylabel('Accuracy [%]')
 
-  dir_name = files.join(files.ASSETS_PATH, '__af__', af_type.value)
+  dir_name = files.join(files.ASSETS_PATH, '__af__', af_type.value, sub_folder)
   files.create_folder(dir_name)
   plt.savefig(files.join(dir_name, 'training_history.png'))
 
-def save_metrics(metrics, af_type):
+def save_metrics(metrics, af_type, sub_folder: str):
   loss = metrics['loss']
   val_loss = metrics['val_loss']
   accuracy = metrics['accuracy'] * 100
@@ -49,7 +49,7 @@ def save_metrics(metrics, af_type):
     ['loss', 'val_loss', 'accuracy', 'val_accuracy'],
   ] + [[los, val_loss[i], accuracy[i], val_accuracy[i]] for i, los in enumerate(loss) ]
   print('Saving report...')
-  dir_path = files.join(files.ASSETS_PATH, '__af__', af_type.value)
+  dir_path = files.join(files.ASSETS_PATH, '__af__', af_type.value, sub_folder)
   files.create_folder(dir_path)
 
   with open(files.join(dir_path, f'{af_type.value}_metics.csv'), 'w', newline='') as file:
@@ -59,7 +59,7 @@ def save_metrics(metrics, af_type):
 
 
 
-def train(af_type: AFTypes, save_af=False):
+def train(af_type: AFTypes, n_mels: int, save_af=False):
   print(f'Training model for {af_type.value} audio_feature...', tf.executing_eagerly())
   af_type_value = af_type.value
 
@@ -74,7 +74,7 @@ def train(af_type: AFTypes, save_af=False):
     subset='both')
   label_names = np.array(train_ds.class_names)
 
-  strategy = TrainStrategy(label_names=label_names, sr=sr, frame_length=frame_length, hop_length=hop_length)
+  strategy = TrainStrategy(label_names=label_names, sr=sr, frame_length=frame_length, hop_length=hop_length, n_mels=n_mels)
   strategy.set_strategy(af_type)
 
   # Prepare data - wave to audio feature
@@ -150,8 +150,8 @@ def train(af_type: AFTypes, save_af=False):
 
     print('Model is saved to: {}'.format(model_dir))
 
-    save_history(history, metrics=history.history, af_type=af_type)
-    save_metrics(history.history, af_type=af_type)
+    save_history(history, metrics=history.history, af_type=af_type, sub_folder=f'{n_mels}')
+    save_metrics(history.history, af_type=af_type, sub_folder=f'{n_mels}')
 
 
 

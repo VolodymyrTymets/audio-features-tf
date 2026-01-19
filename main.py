@@ -5,17 +5,15 @@ from src.neural_network.valid_record import valid_record
 # from src.neural_network.filter_data_set import filter_data_set
 
 def main():
-  audio_features = [AFTypes.sc]
-  for af_type in audio_features:
+  n_mels_list = [8, 16, 24, 32, 48, 64, 96, 128, 256]
+  for n_mels in n_mels_list:
     print("Starting training...")
-    train(af_type, save_af=True)
+    train(AFTypes.mel, n_mels=n_mels, save_af=True)
     print("Training finished.")
 
     print("Starting validation of record...")
-    valid_record(af_type, show_plot=True)
+    valid_record(AFTypes.mel, n_mels=n_mels)
     print("End validation of record.")
-
-    # filter_data_set(af_type, data_set_name='data_set_0.2_filtered')
 
 if __name__ == "__main__":
   main()

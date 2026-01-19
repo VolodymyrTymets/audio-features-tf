@@ -37,7 +37,7 @@ def get_chunk_label_by_model(model, wave):
   return wave_label
 
 
-def valid_record(af_type: AFTypes, show_plot=False):
+def valid_record(af_type: AFTypes, n_mels: int):
 
   model_dir = files.join(files.ASSETS_PATH, 'models', f'm_{DURATION}_{af_type.value}')
   model = tf.saved_model.load(model_dir)
@@ -47,7 +47,7 @@ def valid_record(af_type: AFTypes, show_plot=False):
     waveform, sr = librosa.load(file_path)
     chunks = [x for x in to_chunks(waveform, int(FRAGMENT_LENGTH))]
     chunks_n = to_chunks(waveform, int(FRAGMENT_LENGTH))
-    strategy = AFStrategy(strategy_type=af_type, sr=sr, frame_length=frame_length, hop_length=hop_length)
+    strategy = AFStrategy(strategy_type=af_type, sr=sr, frame_length=frame_length, hop_length=hop_length, n_mels=n_mels)
     # Form segments for collection of lines
     segments = []
     linecolors = []
@@ -85,6 +85,6 @@ def valid_record(af_type: AFTypes, show_plot=False):
       [Line2D([0, 1], [0, 1], color='blue'), Line2D([0, 1], [0, 1], color='green'), Line2D([0, 1], [0, 1], color='red')],
       ['Noise', 'Breath', 'Stimulation'])
     # plt.show()
-    dir_name = files.join(files.ASSETS_PATH, '__af__', af_type.value, 'records')
+    dir_name = files.join(files.ASSETS_PATH, '__af__', af_type.value, f'{n_mels}', 'records')
     files.create_folder(dir_name)
     plt.savefig(files.join(dir_name, file.replace('.wav', '.png')))

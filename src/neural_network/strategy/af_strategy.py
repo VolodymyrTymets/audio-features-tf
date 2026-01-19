@@ -16,7 +16,7 @@ from src.neural_network.strategy.strategies.mfcc_strategy import MFCCStrategy
 
 
 class AFStrategy:
-  def __init__(self, strategy_type: AFTypes, sr: int, frame_length: int, hop_length: int):
+  def __init__(self, strategy_type: AFTypes, sr: int, frame_length: int, hop_length: int, n_mels):
     self.features = FrequencyDomainFeatures()
     self.wave_strategy = WaveStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.ae_strategy = AEStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
@@ -27,7 +27,7 @@ class AFStrategy:
     self.ber_strategy = BERtrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.sc_strategy = SCStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
     self.bw_strategy = BWtrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
-    self.mel_strategy = MelStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
+    self.mel_strategy = MelStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length, sub_folder=f'{n_mels}', n_mels=n_mels)
     self.mfcc_strategy = MFCCStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
 
     if strategy_type.value == AFTypes.wave.value:
