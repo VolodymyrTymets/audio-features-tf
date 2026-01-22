@@ -7,7 +7,7 @@ def main():
   audio_features = [AFTypes.wave, AFTypes.fft, AFTypes.stft, AFTypes.mfcc, AFTypes.mel, AFTypes.bw, AFTypes.sc, AFTypes.ae, AFTypes.rms, AFTypes.zcr, AFTypes.ber]
   for af_type in audio_features:
     print("Starting training...")
-    train(af_type, save_af=True)
+    train(af_type, save_af=False)
     print("Training finished.")
 
     print("Starting validation of record...")

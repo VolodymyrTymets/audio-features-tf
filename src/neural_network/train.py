@@ -4,6 +4,7 @@ import csv
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
+from tensorflow.keras import regularizers
 from tensorflow.keras import models
 from matplotlib import pyplot as plt
 
@@ -64,14 +65,20 @@ def train(af_type: AFTypes, save_af=False):
   af_type_value = af_type.value
 
   # Form data storage
-  data_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'data_set_{}'.format(DURATION), 'train'))
+  data_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'data_set_{}'.format(DURATION)))
   train_ds, val_ds = tf.keras.utils.audio_dataset_from_directory(
-    directory=data_dir,
+    directory=os.path.join(data_dir, 'train'),
     batch_size=32,
     validation_split=0.2,
     seed=0,
     output_sequence_length=FRAGMENT_LENGTH,
     subset='both')
+  test_ds = tf.keras.utils.audio_dataset_from_directory(
+    directory=os.path.join(data_dir, 'valid'),
+    batch_size=32,
+    seed=0,
+    output_sequence_length=FRAGMENT_LENGTH)
+
   label_names = np.array(train_ds.class_names)
 
   strategy = TrainStrategy(label_names=label_names, sr=sr, frame_length=frame_length, hop_length=hop_length)
@@ -80,23 +87,25 @@ def train(af_type: AFTypes, save_af=False):
   # Prepare data - wave to audio feature
   train_ds = train_ds.map(strategy.squeeze_map, tf.data.AUTOTUNE)
   val_ds = val_ds.map(strategy.squeeze_map, tf.data.AUTOTUNE)
-  val_ds = val_ds.shard(num_shards=2, index=1)
+  test_ds = test_ds.map(strategy.squeeze_map, tf.data.AUTOTUNE)
+  # val_ds = val_ds.shard(num_shards=2, index=1)
 
   train_ds = train_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
   val_ds = val_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
+  test_ds = test_ds.map(strategy.get_audio_feature_map, tf.data.AUTOTUNE)
 
   if save_af is True:
     train_ds = train_ds.map(strategy.save_audio_feature_map, tf.data.AUTOTUNE)
 
   train_ds = train_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)
   val_ds = val_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)
+  test_ds = test_ds.map(strategy.reshape_map, tf.data.AUTOTUNE)
 
   # Training model
   train_ds = train_ds.cache().shuffle(
     10000).prefetch(tf.data.AUTOTUNE)
   val_ds = val_ds.cache().prefetch(tf.data.AUTOTUNE)
 
-  history = None
   for example, example_spect_labels in train_ds.take(1):
     input_shape = example.shape[1:]
     num_labels = len(label_names)
@@ -117,22 +126,27 @@ def train(af_type: AFTypes, save_af=False):
       layers.Conv2D(32, 3, activation='relu'),
       layers.Conv2D(64, 3, activation='relu'),
       layers.MaxPooling2D(),
-      # Flatten the result to feed into DNN
       layers.Dropout(0.25),
+      # # Flatten the result to feed into DNN
       layers.Flatten(),
-      layers.Dense(128, activation='tanh'),
+      # 1st Dense layer with 512 neurons.
+      layers.Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+      layers.Dropout(0.25),
+      # 2nd Dense layer with 128 neurons.
+      layers.Dense(128, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+      layers.Dropout(0.25),
+      # 3rd Dense layer with 64 neurons.
+      layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
       layers.Dropout(0.5),
       layers.Dense(num_labels, activation='softmax'),
     ])
-
-    model.summary()
-
     model.compile(
-      optimizer=tf.keras.optimizers.Adam(),
+      optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
       loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
       metrics=['accuracy'],
-      run_eagerly=True
     )
+
+    model.summary()
 
     history = model.fit(
       train_ds,
@@ -141,8 +155,10 @@ def train(af_type: AFTypes, save_af=False):
       callbacks=tf.keras.callbacks.EarlyStopping(verbose=1, patience=2),
     )
 
+    print('Evaluation...')
+    model.evaluate(test_ds, return_dict=True)
 
-    # Save model
+    #Save model
     print('Saving model...')
     export = ExportModel(model=model, label_names=label_names, input_shape=input_shape)
     model_dir = pathlib.Path(os.path.join(ASSETS_PATH, 'models', 'm_{}_{}'.format(DURATION, af_type_value)))
