@@ -129,14 +129,7 @@ def train(af_type: AFTypes, save_af=False):
       layers.Dropout(0.25),
       # # Flatten the result to feed into DNN
       layers.Flatten(),
-      # 1st Dense layer with 512 neurons.
-      layers.Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
-      layers.Dropout(0.25),
-      # 2nd Dense layer with 128 neurons.
-      layers.Dense(128, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
-      layers.Dropout(0.25),
-      # 3rd Dense layer with 64 neurons.
-      layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+      layers.Dense(128, activation='tanh'),
       layers.Dropout(0.5),
       layers.Dense(num_labels, activation='softmax'),
     ])
