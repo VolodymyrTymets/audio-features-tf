@@ -3,7 +3,7 @@ import numpy as np
 import pyloudnorm as pyln
 
 
-class DataTransformer:
+class SignalTransformer:
   def __init__(self, sr: int, frame_length: int, hop_length: int):
     self.sr = sr
     self.frame_length = frame_length
@@ -37,4 +37,7 @@ class DataTransformer:
         pyln.normalize.peak(signal, new_loudness[1]),
       ]
 
-
+  def time_shift(self, signal, shift_limit):
+    _, sig_len = signal.shape
+    shift_amt = int(random.random() * shift_limit * sig_len)
+    return signal.roll(shift_amt)
