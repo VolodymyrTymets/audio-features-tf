@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import pyloudnorm as pyln
+import librosa
 
 
 class SignalTransformer:
@@ -38,6 +39,12 @@ class SignalTransformer:
       ]
 
   def time_shift(self, signal, shift_limit):
-    _, sig_len = signal.shape
+    sig_len = signal.shape[0]
     shift_amt = int(random.random() * shift_limit * sig_len)
-    return signal.roll(shift_amt)
+    return np.roll(signal, shift_amt)
+
+  def pitch_shift(self, signal: np.array, sr: int, n_steps: int = 4):
+    return librosa.effects.pitch_shift(signal, sr=sr, n_steps=n_steps)
+
+  def time_stretch(self, signal: np.array, rate: float = 0.2):
+    return librosa.effects.time_stretch(signal, rate=rate)

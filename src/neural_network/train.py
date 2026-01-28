@@ -129,7 +129,11 @@ def train(af_type: AFTypes, save_af=False):
       layers.Dropout(0.25),
       # # Flatten the result to feed into DNN
       layers.Flatten(),
-      layers.Dense(128, activation='tanh'),
+      layers.Dense(512, activation='relu'),
+      layers.Dropout(0.2),
+      layers.Dense(128, activation='relu'),
+      layers.Dropout(0.3),
+      layers.Dense(64, activation='relu'),
       layers.Dropout(0.5),
       layers.Dense(num_labels, activation='softmax'),
     ])
