@@ -16,10 +16,10 @@ from src.neural_network.strategy.strategies.bw_strategy import BWtrategy
 from src.neural_network.strategy.strategies.mel_strategy import MelStrategy
 from src.neural_network.strategy.strategies.mfcc_strategy import MFCCStrategy
 from src.neural_network.strategy.strategies.strategy_interface import IAFStrategy
-from src.neural_network.strategy.train_strategy_interface import ITrainStrategy
+from src.neural_network.model.stategies.preporcess_strategy.af_preprocess_strategy_interface import IAFPreprocessStrategy
 
 
-class TrainStrategy(ITrainStrategy):
+class CNNAFPreprocessStrategy(IAFPreprocessStrategy):
   def __init__(self, label_names: List[str], sr: int, frame_length: int, hop_length: int):
     self.features = FrequencyDomainFeatures()
     self.label_names = label_names
@@ -46,13 +46,13 @@ class TrainStrategy(ITrainStrategy):
     af = self.strategy.get_audio_feature(signal)
     return af.shape
 
-  def _get_audio_feature(self, waveform):
+  def get_audio_feature(self, waveform):
     bunch = waveform.numpy()
     if self.strategy is None:
       raise ValueError("Strategy not set")
     return np.array([self.strategy.get_audio_feature(signal) for signal in bunch])
 
-  def _save_audio_feature(self, af, labels):
+  def save_audio_feature(self, af, labels):
     bunch = af.numpy()
     if self.strategy is None:
       raise ValueError("Strategy not set")
@@ -91,33 +91,5 @@ class TrainStrategy(ITrainStrategy):
     self.shape = self._calculate_shape()
 
 
-  @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
-  def get_audio_feature(self, i):
-    return tf.py_function(self._get_audio_feature, [i], tf.float32)
-
-  @tf.function
-  def save_audio_feature(self, i, labels):
-    tf.py_function(self._save_audio_feature, [i, labels], tf.float32)
-    return i
-
-  @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
-  def reshape(self, i):
-    w, h = self.shape
-    return tf.reshape(i, (-1, w, h, 1))
-
-  # map function for tf.data.Datasets
-  def get_audio_feature_map(self, audio, labels):
-    audio = self.get_audio_feature(audio)
-    return audio, labels
-
-  def save_audio_feature_map(self, audio, labels):
-    audio = self.save_audio_feature(audio, labels)
-    return audio, labels
-
-  def reshape_map(self, audio, labels):
-    audio = self.reshape(audio)
-    return audio, labels
-
-  def squeeze_map(self, audio, labels):
-    audio = tf.squeeze(audio, axis=-1)
-    return audio, labels
+  def get_shape(self):
+    return self.shape

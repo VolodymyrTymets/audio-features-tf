@@ -7,20 +7,53 @@ from src.audio_features.types import AFTypes
 from src.definitions import FRAGMENT_LENGTH
 from src.files import Files
 from src.logger.logger_service import Logger
+from src.neural_network.model.stategies.preporcess_strategy.CNN_af_preprocess_strategy import CNNAFPreprocessStrategy
 from src.neural_network.model.stategies.preporcess_strategy.preprocess_strategy_interface import IModelPreprocessStrategy
 from src.neural_network.model.types import ModelTypes
+from src.definitions import sr, frame_length, hop_length
 
 
 class CNNModelPreprocessStrategy(IModelPreprocessStrategy):
-  def __init__(self, model_type: ModelTypes, af_type: AFTypes, af_train_strategy):
+  def __init__(self, model_type: ModelTypes, af_type: AFTypes):
     self.model_type = model_type
     self.af_type = af_type
     self.files = Files()
     self.loger = Logger('CNNModelPreprocessStrategy')
-    self.train_strategy = af_train_strategy
+    self.af_strategy = CNNAFPreprocessStrategy(label_names=[], sr=sr, frame_length=frame_length, hop_length=hop_length)
+
+  @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
+  def reshape(self, i):
+    w, h = self.af_strategy.get_shape()
+    return tf.reshape(i, (-1, w, h, 1))
+
+  @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
+  def get_audio_feature(self, i):
+    return tf.py_function(self.af_strategy.get_audio_feature, [i], tf.float32)
+
+  @tf.function
+  def save_audio_feature(self, i, labels):
+    tf.py_function(self.af_strategy.save_audio_feature, [i, labels], tf.float32)
+    return i
+
+  # map function for tf.data.Datasets
+  def get_audio_feature_map(self, audio, labels):
+    audio = self.get_audio_feature(audio)
+    return audio, labels
+
+  def save_audio_feature_map(self, audio, labels):
+    audio = self.save_audio_feature(audio, labels)
+    return audio, labels
+
+  def reshape_map(self, audio, labels):
+    audio = self.reshape(audio)
+    return audio, labels
+
+  def squeeze_map(self, audio, labels):
+    audio = tf.squeeze(audio, axis=-1)
+    return audio, labels
 
   def preprocess(self, data_set_path: str, save_af: bool = False):
-    self.train_strategy.set_strategy(self.af_type)
+    self.af_strategy.set_strategy(self.af_type)
     # Form data storage
     train_ds, val_ds = tf.keras.utils.audio_dataset_from_directory(
       directory=self.files.join(data_set_path, 'train'),
@@ -38,21 +71,21 @@ class CNNModelPreprocessStrategy(IModelPreprocessStrategy):
     label_names = np.array(train_ds.class_names)
 
     # Prepare data - wave to audio feature
-    train_ds = train_ds.map(self.train_strategy.squeeze_map, tf.data.AUTOTUNE)
-    val_ds = val_ds.map(self.train_strategy.squeeze_map, tf.data.AUTOTUNE)
-    test_ds = test_ds.map(self.train_strategy.squeeze_map, tf.data.AUTOTUNE)
+    train_ds = train_ds.map(self.squeeze_map, tf.data.AUTOTUNE)
+    val_ds = val_ds.map(self.squeeze_map, tf.data.AUTOTUNE)
+    test_ds = test_ds.map(self.squeeze_map, tf.data.AUTOTUNE)
     # val_ds = val_ds.shard(num_shards=2, index=1)
 
-    train_ds = train_ds.map(self.train_strategy.get_audio_feature_map, tf.data.AUTOTUNE)
-    val_ds = val_ds.map(self.train_strategy.get_audio_feature_map, tf.data.AUTOTUNE)
-    test_ds = test_ds.map(self.train_strategy.get_audio_feature_map, tf.data.AUTOTUNE)
+    train_ds = train_ds.map(self.get_audio_feature_map, tf.data.AUTOTUNE)
+    val_ds = val_ds.map(self.get_audio_feature_map, tf.data.AUTOTUNE)
+    test_ds = test_ds.map(self.get_audio_feature_map, tf.data.AUTOTUNE)
 
     if save_af:
-      train_ds = train_ds.map(self.train_strategy.save_audio_feature_map, tf.data.AUTOTUNE)
+      train_ds = train_ds.map(self.save_audio_feature_map, tf.data.AUTOTUNE)
 
-    train_ds = train_ds.map(self.train_strategy.reshape_map, tf.data.AUTOTUNE)
-    val_ds = val_ds.map(self.train_strategy.reshape_map, tf.data.AUTOTUNE)
-    test_ds = test_ds.map(self.train_strategy.reshape_map, tf.data.AUTOTUNE)
+    train_ds = train_ds.map(self.reshape_map, tf.data.AUTOTUNE)
+    val_ds = val_ds.map(self.reshape_map, tf.data.AUTOTUNE)
+    test_ds = test_ds.map(self.reshape_map, tf.data.AUTOTUNE)
 
     # Training model
     train_ds = train_ds.cache().shuffle(

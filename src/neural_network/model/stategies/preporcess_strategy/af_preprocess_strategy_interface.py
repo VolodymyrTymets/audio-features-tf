@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
 
-class ITrainStrategy(ABC):
+class IAFPreprocessStrategy(ABC):
   @abstractmethod
   def get_audio_feature(self, wave):
     pass
 
   @abstractmethod
-  def reshape(self, wave):
+  def save_audio_feature(self, af, label):
+    pass
+
+  @abstractmethod
+  def get_shape(self):
     pass
