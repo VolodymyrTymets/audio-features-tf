@@ -1,5 +1,3 @@
-from typing import List
-import tensorflow as tf
 import numpy as np
 from src.audio_features.audio_features import FrequencyDomainFeatures
 from src.audio_features.types import AFTypes
@@ -20,9 +18,8 @@ from src.neural_network.model.stategies.preporcess_strategy.af_preprocess_strate
 
 
 class CNNAFPreprocessStrategy(IAFPreprocessStrategy):
-  def __init__(self, label_names: List[str], sr: int, frame_length: int, hop_length: int):
+  def __init__(self, sr: int, frame_length: int, hop_length: int):
     self.features = FrequencyDomainFeatures()
-    self.label_names = label_names
     self.sr = sr
     self.frame_length = frame_length
     self.hop_length = hop_length
@@ -52,13 +49,14 @@ class CNNAFPreprocessStrategy(IAFPreprocessStrategy):
       raise ValueError("Strategy not set")
     return np.array([self.strategy.get_audio_feature(signal) for signal in bunch])
 
-  def save_audio_feature(self, af, labels):
+  def save_audio_feature(self, af, labels, label_names):
     bunch = af.numpy()
     if self.strategy is None:
       raise ValueError("Strategy not set")
     first = bunch[0]
     first_label_index = labels.numpy()[0]
-    self.strategy.save_audio_feature(first, self.label_names[first_label_index])
+    label = label_names.numpy()[first_label_index].decode("utf-8")
+    self.strategy.save_audio_feature(first, label=label)
     return af
 
   def set_strategy(self, strategy_type: AFTypes):

@@ -28,7 +28,7 @@ def train(af_type: AFTypes, model_type: ModelTypes.CNN, save_af=False):
 
 
   train_ds, val_ds, test_ds, label_names = model_preprocessor.preprocess(
-    data_set_path=files.join(files.ASSETS_PATH, f'data_set_{DURATION}'), save_af=False
+    data_set_path=files.join(files.ASSETS_PATH, f'data_set_{DURATION}'), save_af=save_af
   )
 
   for example, example_spect_labels in train_ds.take(1):

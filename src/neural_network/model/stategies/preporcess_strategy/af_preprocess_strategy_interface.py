@@ -6,7 +6,7 @@ class IAFPreprocessStrategy(ABC):
     pass
 
   @abstractmethod
-  def save_audio_feature(self, af, label):
+  def save_audio_feature(self, af, label, label_names):
     pass
 
   @abstractmethod
