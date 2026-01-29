@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras import models
-from src.neural_network.model.stategies.strategy_interface import IModelBuildStrategy
+from src.neural_network.model.stategies.build_strategy.build_strategy_interface import IModelBuildStrategy
 
 
 class CNNModelBuildStrategy(IModelBuildStrategy):

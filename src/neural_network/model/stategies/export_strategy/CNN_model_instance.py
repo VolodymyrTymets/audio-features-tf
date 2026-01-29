@@ -1,10 +1,8 @@
 import tensorflow as tf
-from src.neural_network.strategy.train_strategy_interface import ITrainStrategy
-from src.definitions import sr, FRAGMENT_LENGTH
 
 
-class ExportModel(tf.Module):
-  def __init__(self, model, input_shape, label_names,):
+class CNNExportModelInstance(tf.Module):
+  def __init__(self, model, input_shape, label_names):
     self.model = model
     self.label_names = label_names
     self.input_shape = input_shape

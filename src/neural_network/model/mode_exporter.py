@@ -1,16 +1,32 @@
 import csv
+import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
-from src.files import Files
 
-class MoldeMetrics:
+from src.definitions import DURATION
+from src.files import Files
+from src.logger.logger_service import Logger
+from src.neural_network.model.stategies.export_strategy.CNN_model_instance import CNNExportModelInstance
+from src.neural_network.model.types import ModelTypes
+
+
+class MoldeExporter:
   def __init__(self, model_type, af_type):
     self.model_type = model_type
     self.af_type = af_type
-
     self.files = Files()
+    self.loger = Logger('ModelExporter')
 
-  def save_history(self, history):
+  def export_model(self, model, label_names, input_shape):
+    self.loger.log('Saving model...', 'blue')
+    model_dir = self.files.join(self.files.ASSETS_PATH, 'models', 'm_{}_{}_{}'.format(DURATION, self.af_type.value, self.model_type.value))
+    export = None
+    if self.model_type.value == ModelTypes.CNN.value:
+      export = CNNExportModelInstance(model=model, label_names=label_names, input_shape=input_shape)
+    tf.saved_model.save(export, model_dir)
+    self.loger.log('Model is saved to: {}'.format(model_dir), 'green')
+
+  def export_history(self, history):
     metrics = history.history
     plt.figure(figsize=(16, 6))
     plt.subplot(1, 2, 1)
@@ -31,7 +47,7 @@ class MoldeMetrics:
     self.files.create_folder(dir_name)
     plt.savefig(self.files.join(dir_name, 'training_history.png'))
 
-  def save_metrics(self, history):
+  def export_metrics(self, history):
     metrics = history.history
     loss = metrics['loss']
     val_loss = metrics['val_loss']
