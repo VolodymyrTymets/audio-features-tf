@@ -9,6 +9,7 @@ from src.wav_files import WavFiles
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
+from src.neural_network.utils import label_by_model
 
 from src.audio_features.strategy.af_strategy_factory import AFStrategyFactory
 from src.neural_network.model.types import ModelTypes
@@ -26,19 +27,7 @@ def to_chunks(lst, n):
   for i in range(0, len(lst), n):
     yield lst[i:i + n]
 
-def get_chunk_label_by_model(model, wave):
-  x = tf.convert_to_tensor(wave, dtype=tf.float32)
-  result = model(tf.constant(x))
-  label_names = np.array(result['label_names'])
-  prediction = tf.nn.softmax(result['predictions']).numpy()[0]
-  max_value = max(prediction)
-  i, = np.where(prediction == max_value)
-  wave_label = label_names[i]
-  return wave_label
-
-
-def valid_record(af_type: AFTypes, model_type: ModelTypes, show_plot=False, name = ''):
-
+def valid_record(af_type: AFTypes, model_type: ModelTypes, name = ''):
   model_dir = files.join(files.ASSETS_PATH, 'models', f'm_{DURATION}_{af_type.value}_{model_type.value}')
   model = tf.saved_model.load(model_dir)
   files_path = files.join(files.ASSETS_PATH, 'test', 'records')
@@ -64,7 +53,8 @@ def valid_record(af_type: AFTypes, model_type: ModelTypes, show_plot=False, name
       try:
         signal = pad_array(chunk_n, FRAGMENT_LENGTH)
         af = strategy.get_audio_feature(signal=signal)
-        line_label = get_chunk_label_by_model(model, af)
+
+        line_label, _ = label_by_model(model, af)
       except Exception as e:
         line_label = 'noise'
         print(e)
@@ -72,7 +62,6 @@ def valid_record(af_type: AFTypes, model_type: ModelTypes, show_plot=False, name
       color = 'green' if 'breath' in str(line_label) else color
       linecolors.append(color)
 
-    print('Labe with duration {}: {}'.format(DURATION, file_path))
     # Create figure
     fig, ax = plt.subplots(figsize=(12, 2))
     line_collection = LineCollection(segments=segments, colors=linecolors)
@@ -90,3 +79,4 @@ def valid_record(af_type: AFTypes, model_type: ModelTypes, show_plot=False, name
     dir_name = files.join(files.ASSETS_PATH, '__af__', af_type.value, 'records')
     files.create_folder(dir_name)
     plt.savefig(files.join(dir_name, file.replace('.wav', '.png')))
+    print(f'[{DURATION}_{af_type.value}_{model_type.value}] Labeled: {file_path}')
