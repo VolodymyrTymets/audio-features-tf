@@ -4,7 +4,7 @@ import numpy as np
 
 class IAFStrategy(ABC):
   @abstractmethod
-  def get_audio_feature(self, wave: np.ndarray):
+  def get_audio_feature(self, signal: np.ndarray):
     pass
 
   @abstractmethod

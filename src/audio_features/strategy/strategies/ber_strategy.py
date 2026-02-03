@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from src.neural_network.strategy.strategies.base_strategy import BaseStrategy
+from src.audio_features.strategy.strategies.base_strategy import BaseStrategy
 from src.definitions import split_frequency
 from src.audio_features.types import AFTypes
 
@@ -13,7 +13,7 @@ class BERtrategy(BaseStrategy):
     self.fig = fig
     self.ax = ax
 
-  def get_audio_feature(self, wave: np.ndarray):
-    af = self.features.BER(signal=wave, sr=self.sr, frame_length=self.frame_length, hop_length=self.hop_length, split_frequency=split_frequency)
+  def get_audio_feature(self, signal: np.ndarray):
+    af = self.features.BER(signal=signal, sr=self.sr, frame_length=self.frame_length, hop_length=self.hop_length, split_frequency=split_frequency)
     matrix = self._signal_to_image_matrix(af)
     return matrix

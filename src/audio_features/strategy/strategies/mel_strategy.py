@@ -1,7 +1,7 @@
 import numpy as np
 
 from src.definitions import n_mels
-from src.neural_network.strategy.strategies.base_strategy import BaseStrategy
+from src.audio_features.strategy.strategies.base_strategy import BaseStrategy
 from src.audio_features.types import AFTypes
 
 
@@ -10,6 +10,6 @@ class MelStrategy(BaseStrategy):
     super(self.__class__, self).__init__(sr, frame_length, hop_length)
     self.af_type = AFTypes.mel
 
-  def get_audio_feature(self, wave: np.ndarray):
-    return self.features.melspectogram(signal=wave, sr=self.sr, frame_length=self.frame_length,
+  def get_audio_feature(self, signal: np.ndarray):
+    return self.features.melspectogram(signal=signal, sr=self.sr, frame_length=self.frame_length,
                                        hop_length=self.hop_length, n_mels=n_mels)

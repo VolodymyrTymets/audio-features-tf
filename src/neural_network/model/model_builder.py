@@ -1,25 +1,15 @@
-from src.audio_features.types import AFTypes
-from src.files import Files
 from src.logger.logger_service import Logger
-from src.neural_network.model.stategies.build_strategy.CNN_strategy import CNNModelBuildStrategy
-from src.neural_network.model.types import ModelTypes
-
+from src.neural_network.model.stategies.build_strategy.build_strategy_interface import IModelBuildStrategy
 
 class ModelBuilder:
-  def __init__(self, model_type: ModelTypes, af_type: AFTypes):
-    self.model_type = model_type
-    self.af_type = af_type
+  def __init__(self, strategy: IModelBuildStrategy):
     self.model = None
-    self.build_strategy = None
-    self.files = Files()
+    self.strategy = strategy
     self.loger = Logger('ModelBuilder')
-
-    if model_type.value == ModelTypes.CNN.value:
-      self.build_strategy = CNNModelBuildStrategy()
 
   def build(self, input_shape, output_shape, train_ds):
     self.loger.log(f'Building model with input shape: {input_shape}...')
-    self.model = self.build_strategy.build(input_shape, output_shape, train_ds)
+    self.model = self.strategy.build(input_shape, output_shape, train_ds)
     self.loger.log(f'Model built: {self.model.name}', 'green')
     self.model.summary()
     return self.model

@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from src.neural_network.strategy.strategies.base_strategy import BaseStrategy
+from src.audio_features.strategy.strategies.base_strategy import BaseStrategy
 from src.audio_features.types import AFTypes
 
 
@@ -12,6 +12,6 @@ class FFTStrategy(BaseStrategy):
     self.fig = fig
     self.ax = ax
 
-  def get_audio_feature(self, wave: np.ndarray):
-    matrix, freqs, bins, im = self.ax.specgram(wave, Fs=self.sr, NFFT=self.frame_length, cmap='plasma')
+  def get_audio_feature(self, signal: np.ndarray):
+    matrix, freqs, bins, im = self.ax.specgram(signal, Fs=self.sr, NFFT=self.frame_length, cmap='plasma')
     return matrix

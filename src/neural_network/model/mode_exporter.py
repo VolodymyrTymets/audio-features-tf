@@ -6,8 +6,7 @@ from matplotlib import pyplot as plt
 from src.definitions import DURATION
 from src.files import Files
 from src.logger.logger_service import Logger
-from src.neural_network.model.stategies.export_strategy.CNN_model_instance import CNNExportModelInstance
-from src.neural_network.model.types import ModelTypes
+from src.neural_network.model.stategies.export_strategy.model_instance_factory import ModelInstanceFactory
 
 
 class MoldeExporter:
@@ -19,10 +18,9 @@ class MoldeExporter:
 
   def export_model(self, model, label_names, input_shape):
     self.loger.log('Saving model...', 'blue')
-    model_dir = self.files.join(self.files.ASSETS_PATH, 'models', 'm_{}_{}_{}'.format(DURATION, self.af_type.value, self.model_type.value))
-    export = None
-    if self.model_type.value == ModelTypes.CNN.value:
-      export = CNNExportModelInstance(model=model, label_names=label_names, input_shape=input_shape)
+    model_dir = self.files.join(self.files.ASSETS_PATH, 'models',
+                                'm_{}_{}_{}'.format(DURATION, self.af_type.value, self.model_type.value))
+    export = ModelInstanceFactory(self.model_type).create_model_instance(model, label_names, input_shape)
     tf.saved_model.save(export, model_dir)
     self.loger.log('Model is saved to: {}'.format(model_dir), 'green')
 
@@ -54,8 +52,8 @@ class MoldeExporter:
     accuracy = metrics['accuracy'] * 100
     val_accuracy = metrics['val_accuracy'] * 100
     data = [
-      ['loss', 'val_loss', 'accuracy', 'val_accuracy'],
-    ] + [[los, val_loss[i], accuracy[i], val_accuracy[i]] for i, los in enumerate(loss) ]
+             ['loss', 'val_loss', 'accuracy', 'val_accuracy'],
+           ] + [[los, val_loss[i], accuracy[i], val_accuracy[i]] for i, los in enumerate(loss)]
     print('Saving report...')
     dir_path = self.files.join(self.files.ASSETS_PATH, '__af__', self.af_type.value)
     self.files.create_folder(dir_path)

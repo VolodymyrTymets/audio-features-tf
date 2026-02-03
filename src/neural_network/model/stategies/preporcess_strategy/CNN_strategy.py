@@ -3,40 +3,52 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from src.audio_features.types import AFTypes
 from src.definitions import FRAGMENT_LENGTH
 from src.files import Files
 from src.logger.logger_service import Logger
-from src.neural_network.model.stategies.preporcess_strategy.CNN_af_preprocess_strategy import CNNAFPreprocessStrategy
 from src.neural_network.model.stategies.preporcess_strategy.preprocess_strategy_interface import IModelPreprocessStrategy
-from src.neural_network.model.types import ModelTypes
-from src.definitions import sr, frame_length, hop_length
+from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 
 
 class CNNModelPreprocessStrategy(IModelPreprocessStrategy):
-  def __init__(self, model_type: ModelTypes, af_type: AFTypes):
-    self.model_type = model_type
-    self.af_type = af_type
+  def __init__(self, af_strategy: IAFStrategy):
     self.files = Files()
     self.loger = Logger('CNNModelPreprocessStrategy')
-    self.af_strategy = CNNAFPreprocessStrategy(sr=sr, frame_length=frame_length, hop_length=hop_length)
+    self.af_strategy = af_strategy
+    self.shape = self._calculate_shape()
+
+  def _calculate_shape(self):
+    signal = np.zeros(FRAGMENT_LENGTH)
+    af = self.af_strategy.get_audio_feature(signal)
+    return af.shape
+
+  def get_bunch_audio_feature(self, waveform):
+    bunch = waveform.numpy()
+    return np.array([self.af_strategy.get_audio_feature(signal) for signal in bunch])
+
+  def save_bunch_audio_feature(self, af, labels, label_names):
+    bunch = af.numpy()
+    first = bunch[0]
+    first_label_index = labels.numpy()[0]
+    label = label_names.numpy()[first_label_index].decode("utf-8")
+    self.af_strategy.save_audio_feature(first, label=label)
+    return af
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def reshape(self, i):
-    w, h = self.af_strategy.get_shape()
+    w, h = self.shape
     return tf.reshape(i, (-1, w, h, 1))
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def get_audio_feature(self, i):
-    return tf.py_function(self.af_strategy.get_audio_feature, [i], tf.float32)
+    return tf.py_function(self.get_bunch_audio_feature, [i], tf.float32)
 
   @tf.function
   def save_audio_feature(self, i, labels, label_names):
-    tf.py_function(self.af_strategy.save_audio_feature, [i, labels, label_names], tf.float32)
+    tf.py_function(self.save_bunch_audio_feature, [i, labels, label_names], tf.float32)
     return i
 
   def preprocess(self, data_set_path: str, save_af: bool = False):
-    self.af_strategy.set_strategy(self.af_type)
     # Form data storage
     train_ds, val_ds = tf.keras.utils.audio_dataset_from_directory(
       directory=self.files.join(data_set_path, 'train'),

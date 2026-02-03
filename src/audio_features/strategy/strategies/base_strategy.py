@@ -5,7 +5,7 @@ import uuid
 from PIL import Image, ImageDraw
 from src.audio_features.audio_features import FrequencyDomainFeatures
 from src.definitions import ASSETS_PATH
-from src.neural_network.strategy.strategies.strategy_interface import IAFStrategy
+from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 from src.files import Files
 
 class BaseStrategy(IAFStrategy):
@@ -47,5 +47,5 @@ class BaseStrategy(IAFStrategy):
     img.save(file_path)
     return matrix
 
-  def get_audio_feature(self, wave: np.ndarray):
+  def get_audio_feature(self, signal: np.ndarray):
     pass

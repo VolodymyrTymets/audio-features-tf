@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from src.neural_network.strategy.strategies.base_strategy import BaseStrategy
+from src.audio_features.strategy.strategies.base_strategy import BaseStrategy
 from src.audio_features.audio_features import TimeDomainFeatures
 from src.audio_features.types import AFTypes
 
@@ -14,7 +14,7 @@ class RMStrategy(BaseStrategy):
     self.fig = fig
     self.ax = ax
 
-  def get_audio_feature(self, wave: np.ndarray):
-    rms = self.features.RSME(signal=wave, frame_length=self.frame_length, hop_length=self.hop_length)
+  def get_audio_feature(self, signal: np.ndarray):
+    rms = self.features.RSME(signal=signal, frame_length=self.frame_length, hop_length=self.hop_length)
     matrix = self._signal_to_image_matrix(rms)
     return matrix

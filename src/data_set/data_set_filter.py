@@ -3,7 +3,7 @@ import shutil
 import tensorflow as tf
 from src.data_set.data_set_file_worker import DataSetFileWorker
 from src.audio_features.types import AFTypes
-from src.neural_network.strategy.af_strategy import AFStrategy
+from src.audio_features.strategy.af_strategy import AFStrategy
 from src.logger.logger_service import Logger
 from src.audio_features.signal_transformer import SignalTransformer
 

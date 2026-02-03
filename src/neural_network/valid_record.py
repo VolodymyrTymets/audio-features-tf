@@ -1,20 +1,20 @@
 import os
-import librosa
-import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
 from src.audio_features.types import AFTypes
-from src.definitions import DURATION, FRAGMENT_LENGTH, frame_length, hop_length
+from src.definitions import DURATION, FRAGMENT_LENGTH, frame_length, hop_length, sr as SR
 from src.files import Files
+from src.wav_files import WavFiles
 from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
 
-from src.neural_network.strategy.af_strategy import AFStrategy
+from src.audio_features.strategy.af_strategy_factory import AFStrategyFactory
+from src.neural_network.model.types import ModelTypes
 
 files = Files()
-
+wav_files = WavFiles()
 
 def pad_array(arr, length):
   if len(arr) < length:
@@ -37,17 +37,19 @@ def get_chunk_label_by_model(model, wave):
   return wave_label
 
 
-def valid_record(af_type: AFTypes, show_plot=False):
+def valid_record(af_type: AFTypes, model_type: ModelTypes, show_plot=False, name = ''):
 
-  model_dir = files.join(files.ASSETS_PATH, 'models', f'm_{DURATION}_{af_type.value}')
+  model_dir = files.join(files.ASSETS_PATH, 'models', f'm_{DURATION}_{af_type.value}_{model_type.value}')
   model = tf.saved_model.load(model_dir)
   files_path = files.join(files.ASSETS_PATH, 'test', 'records')
   for file in files.get_only_files(files_path):
+    if name != '' and name not in file:
+      continue
     file_path = os.path.join(files_path, file)
-    waveform, sr = librosa.load(file_path)
+    waveform, _ = wav_files.read(file_path)
     chunks = [x for x in to_chunks(waveform, int(FRAGMENT_LENGTH))]
     chunks_n = to_chunks(waveform, int(FRAGMENT_LENGTH))
-    strategy = AFStrategy(strategy_type=af_type, sr=sr, frame_length=frame_length, hop_length=hop_length)
+    strategy = AFStrategyFactory(sr=SR, frame_length=frame_length, hop_length=hop_length).create_strategy(af_type)
     # Form segments for collection of lines
     segments = []
     linecolors = []
