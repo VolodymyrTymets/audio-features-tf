@@ -9,6 +9,6 @@ class ModelEvaluator:
     if model is None:
       raise ValueError("Model not set")
     self.loger.log('Evaluation of model:', 'green')
-    model.evaluate(test_ds, return_dict=True)
+    return model.evaluate(test_ds, return_dict=True)
 
 

@@ -37,8 +37,7 @@ class MLPipeline:
     model_preprocessor = ModelPreprocessor(strategy=self.preprocessor_strategy)
     model_builder = ModelBuilder(strategy=self.build_strategy)
     mode_evaluator = ModelEvaluator()
-    mode_exporter = MoldeExporter(model_type=self.model_type, af_type=self.af_type)
-
+    model_exporter = MoldeExporter(model_type=self.model_type, af_type=self.af_type)
 
     train_ds, val_ds, test_ds, label_names = model_preprocessor.preprocess(
       data_set_path=self.files.join(self.files.ASSETS_PATH, f'data_set_{DURATION}'), save_af=save_af
@@ -50,11 +49,14 @@ class MLPipeline:
       model = model_builder.build(input_shape, output_shape=len(label_names), train_ds=train_ds)
       history = model_builder.train(train_ds, val_ds, epochs=EPOCHS)
 
-      mode_evaluator.evaluate(model=model, test_ds=test_ds)
+      evaluation = mode_evaluator.evaluate(model=model, test_ds=test_ds)
+      test_acc, test_loss = evaluation.values()
 
-      mode_exporter.export_model(model, label_names, input_shape)
-      mode_exporter.export_history(history)
-      mode_exporter.export_metrics(history)
+      model_exporter.export_model(model, label_names, input_shape)
+      model_exporter.export_history(history)
+      model_exporter.export_metrics(history)
+      model_exporter.export_evaluation(test_acc, self.af_type, self.model_type, 'acc')
+      model_exporter.export_evaluation(test_loss, self.af_type, self.model_type, 'loss')
 
 
 

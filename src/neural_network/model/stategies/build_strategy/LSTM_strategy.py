@@ -17,7 +17,7 @@ class LSTMModelBuildStrategy(IModelBuildStrategy):
 
     model = models.Sequential([
       layers.Input(shape=input_shape),
-      layers.LSTM(128, return_sequences=True),
+      layers.LSTM(64, return_sequences=True),
       layers.LSTM(64),
       layers.Dense(64, activation='relu'),
       layers.Dropout(0.5),
