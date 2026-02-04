@@ -76,7 +76,7 @@ def valid_record(af_type: AFTypes, model_type: ModelTypes, name = ''):
       [Line2D([0, 1], [0, 1], color='blue'), Line2D([0, 1], [0, 1], color='green'), Line2D([0, 1], [0, 1], color='red')],
       ['Noise', 'Breath', 'Stimulation'])
     # plt.show()
-    dir_name = files.join(files.ASSETS_PATH, '__af__', af_type.value, 'records')
+    dir_name = files.join(files.ASSETS_PATH, '__af__', f'{af_type.value}_{model_type.value}', 'records')
     files.create_folder(dir_name)
     plt.savefig(files.join(dir_name, file.replace('.wav', '.png')))
     print(f'[{DURATION}_{af_type.value}_{model_type.value}] Labeled: {file_path}')

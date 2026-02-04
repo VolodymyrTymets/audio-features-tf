@@ -41,7 +41,7 @@ class MoldeExporter:
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy [%]')
 
-    dir_name = self.files.join(self.files.ASSETS_PATH, '__af__', self.af_type.value)
+    dir_name = self.files.join(self.files.ASSETS_PATH, '__af__', f'{self.af_type.value}_{self.model_type.value}')
     self.files.create_folder(dir_name)
     plt.savefig(self.files.join(dir_name, 'training_history.png'))
 
@@ -55,7 +55,7 @@ class MoldeExporter:
              ['loss', 'val_loss', 'accuracy', 'val_accuracy'],
            ] + [[los, val_loss[i], accuracy[i], val_accuracy[i]] for i, los in enumerate(loss)]
     print('Saving report...')
-    dir_path = self.files.join(self.files.ASSETS_PATH, '__af__', self.af_type.value)
+    dir_path = self.files.join(self.files.ASSETS_PATH, '__af__', f'{self.af_type.value}_{self.model_type.value}')
     self.files.create_folder(dir_path)
 
     with open(self.files.join(dir_path, f'{self.af_type.value}_metics.csv'), 'w', newline='') as file:
