@@ -1,5 +1,6 @@
 from src.neural_network.model.stategies.build_strategy.CNN_strategy import CNNModelBuildStrategy
 from src.neural_network.model.stategies.build_strategy.LSTM_strategy import LSTMModelBuildStrategy
+from src.neural_network.model.stategies.build_strategy.GRU_strategy import GRUModelBuildStrategy
 from src.neural_network.model.types import ModelTypes
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 
@@ -12,6 +13,8 @@ class BuildStrategyFactory:
     if model_type.value == ModelTypes.CNN.value:
       return CNNModelBuildStrategy()
     if model_type.value == ModelTypes.LSTM.value:
+      return LSTMModelBuildStrategy()
+    if model_type.value == ModelTypes.GRU.value:
       return LSTMModelBuildStrategy()
     else:
       raise ValueError(f'Model type {model_type.value} not supported')

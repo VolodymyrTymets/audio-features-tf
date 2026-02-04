@@ -45,6 +45,7 @@ class MLPipeline:
 
     for example, example_spect_labels in train_ds.take(1):
       input_shape = example.shape[1:]
+      print(f'Input shape: {input_shape}')
 
       model = model_builder.build(input_shape, output_shape=len(label_names), train_ds=train_ds)
       history = model_builder.train(train_ds, val_ds, epochs=EPOCHS)

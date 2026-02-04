@@ -12,6 +12,8 @@ class ModelInstanceFactory:
   def create_model_instance(self, model, label_names, input_shape):
     if self.model_type.value == ModelTypes.CNN.value:
       return CNNExportModelInstance(model=model, label_names=label_names, input_shape=input_shape)
+    elif self.model_type.value == ModelTypes.GRU.value:
+      return LSTMExportModelInstance(model=model, label_names=label_names, input_shape=input_shape)
     elif self.model_type.value == ModelTypes.LSTM.value:
       return LSTMExportModelInstance(model=model, label_names=label_names, input_shape=input_shape)
     else:
