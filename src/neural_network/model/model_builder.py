@@ -28,7 +28,7 @@ class ModelBuilder:
     if self.files.is_exist(self.checkpoint_dir):
       self.loger.log(f'Loading model from checkpoint: {self.checkpoint_dir}')
       checkpoints = self.files.get_only_files(self.checkpoint_dir)
-      checkpoints.sort(reverse=True)
+      checkpoints = sorted(checkpoints, key=lambda name: int(name.split('.')[0]), reverse=True)
       latest_checkpoint = checkpoints[0]
       if latest_checkpoint is not None:
         initial_epoch = int(latest_checkpoint.split('.')[0])
@@ -44,7 +44,7 @@ class ModelBuilder:
       save_best_only=True)
 
     self.loger.log(f'Training mode from epoch: {initial_epoch} to {epochs}...', 'blue')
-    if initial_epoch <= epochs:
+    if epochs <= initial_epoch:
       return None
     history = self.model.fit(train_ds, validation_data=val_ds, epochs=epochs, initial_epoch=initial_epoch, callbacks=[cp_callback])
     self.loger.log(f'Model trained: {self.model.name}', 'green')
