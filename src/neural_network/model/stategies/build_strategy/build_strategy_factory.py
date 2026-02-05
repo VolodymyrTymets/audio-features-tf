@@ -15,7 +15,7 @@ class BuildStrategyFactory:
     if model_type.value == ModelTypes.LSTM.value:
       return LSTMModelBuildStrategy()
     if model_type.value == ModelTypes.GRU.value:
-      return LSTMModelBuildStrategy()
+      return GRUModelBuildStrategy()
     else:
       raise ValueError(f'Model type {model_type.value} not supported')
 
