@@ -2,10 +2,7 @@ import csv
 import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
-from numba.cuda.cudadrv import enums
-
 from src.audio_features.types import AFTypes
-from src.definitions import DURATION
 from src.files import Files
 from src.logger.logger_service import Logger
 from src.neural_network.model.stategies.export_strategy.model_instance_factory import ModelInstanceFactory
@@ -24,13 +21,12 @@ class MoldeExporter:
       writer = csv.writer(file)
       writer.writerows(data)
 
-  def export_model(self, model, label_names, input_shape):
+  def export_model(self, model, label_names, input_shape, target_path: str = None):
     self.loger.log('Saving model...', 'blue')
-    model_dir = self.files.join(self.files.ASSETS_PATH, 'models',
-                                'm_{}_{}_{}'.format(DURATION, self.af_type.value, self.model_type.value))
     export = ModelInstanceFactory(self.model_type).create_model_instance(model, label_names, input_shape)
-    tf.saved_model.save(export, model_dir)
-    self.loger.log('Model is saved to: {}'.format(model_dir), 'green')
+    tf.saved_model.save(export, target_path)
+    self.loger.log('Model is saved to: {}'.format(target_path), 'green')
+
 
   def export_history(self, history):
     metrics = history.history
