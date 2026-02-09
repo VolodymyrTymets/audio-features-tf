@@ -22,17 +22,16 @@ class CNNModelBuildStrategy(IModelBuildStrategy):
       # Normalize.
       norm_layer,
       layers.Conv2D(32, 3, activation='relu'),
-      layers.Dropout(0.25),
       layers.Conv2D(64, 3, activation='relu'),
       layers.MaxPooling2D(),
-      layers.Dropout(0.25),
+      layers.Dropout(0.2),
       # # Flatten the result to feed into DNN
       layers.Flatten(),
       # layers.Dense(512, activation='relu'),
       # layers.Dropout(0.2),
       # layers.Dense(128, activation='relu'),
       # layers.Dropout(0.3),
-      layers.Dense(64, activation='relu'),
+      layers.Dense(128, activation='tanh'),
       layers.Dropout(0.5),
       layers.Dense(output_shape, activation='softmax'),
     ])
