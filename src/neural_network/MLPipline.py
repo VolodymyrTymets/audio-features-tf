@@ -15,6 +15,7 @@ from src.neural_network.model.model_builder import ModelBuilder
 from src.neural_network.model.model_evaluator import ModelEvaluator
 from src.neural_network.model.mode_exporter import MoldeExporter
 from src.audio_features.strategy.af_strategy_factory import AFStrategyFactory
+from src.neural_network.model.model_record_evaluator import ModelRecordEvaluator, ModelRecordColorLabeler
 
 
 # Set the seed value for experiment reproducibility.
@@ -36,7 +37,7 @@ class MLPipeline:
     self.build_strategy = BuildStrategyFactory(af_strategy=self.af_strategy).create_strategy(model_type)
 
 
-  def train(self, save_af=False):
+  def train(self, save_af=False, save_model=True):
     model_preprocessor = ModelPreprocessor(strategy=self.preprocessor_strategy)
     model_builder = ModelBuilder(strategy=self.build_strategy, target_path=self._model_dir)
     mode_evaluator = ModelEvaluator()
@@ -56,13 +57,27 @@ class MLPipeline:
         model_exporter.export_metrics(result.history)
         model_exporter.export_training_plot()
 
-      model_exporter.export_model(model, label_names, input_shape, target_path=self._model_dir)
+      if save_model:
+        model_exporter.export_model(model, label_names, input_shape, target_path=self._model_dir)
 
       evaluation = mode_evaluator.evaluate(model=model, test_ds=test_ds)
       test_acc, test_loss = evaluation.values()
+      record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type)
+      test_record_acc = record_evaluator.evaluate_record('test.wav')
+
 
       model_exporter.export_evaluation(test_acc, self.af_type, self.model_type, 'acc')
       model_exporter.export_evaluation(test_loss, self.af_type, self.model_type, 'loss')
+      model_exporter.export_evaluation(test_record_acc, self.af_type, self.model_type, 'record_acc')
+      self.loger.log('Model trained and evaluated', 'green')
+
+  def label_records(self):
+    record_evaluator = ModelRecordColorLabeler(self.af_strategy, self.af_type, self.model_type, model=None)
+    record_evaluator.label_records()
+
+  def evaluate_record(self, file_name: str):
+    record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type, model=None)
+    return record_evaluator.evaluate_record(file_name)
 
 
 
