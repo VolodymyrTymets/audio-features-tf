@@ -22,6 +22,7 @@ class CNNModelBuildStrategy(IModelBuildStrategy):
       # Normalize.
       norm_layer,
       layers.Conv2D(32, 3, activation='relu'),
+      layers.Dropout(0.25),
       layers.Conv2D(64, 3, activation='relu'),
       layers.MaxPooling2D(),
       layers.Dropout(0.25),

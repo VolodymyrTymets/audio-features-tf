@@ -11,8 +11,9 @@ class GRUModelBuildStrategy(IModelBuildStrategy):
     model = models.Sequential([
       layers.Input(shape=input_shape),
       layers.GRU(32, return_sequences=True),
-      layers.GRU(64),
-      layers.Dropout(0.5),
+      layers.Dropout(0.25),
+      layers.GRU(32),
+      layers.Dropout(0.25),
       # # Flatten the result to feed into DNN
       layers.Flatten(),
       layers.Dense(64, activation='relu'),
