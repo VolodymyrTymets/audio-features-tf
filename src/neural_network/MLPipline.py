@@ -48,7 +48,6 @@ class MLPipeline:
     )
     for example, example_spect_labels in train_ds.take(1):
       input_shape = example.shape[1:]
-      print(f'Input shape: {input_shape}')
 
       model = model_builder.build(input_shape, output_shape=len(label_names), train_ds=train_ds)
       result = model_builder.train(train_ds, val_ds, epochs=EPOCHS)
@@ -69,6 +68,7 @@ class MLPipeline:
       model_exporter.export_evaluation(test_acc, self.af_type, self.model_type, 'acc')
       model_exporter.export_evaluation(test_loss, self.af_type, self.model_type, 'loss')
       model_exporter.export_evaluation(test_record_acc, self.af_type, self.model_type, 'record_acc')
+      self.loger.log(f'Test record accuracy: {test_record_acc}%', 'blue')
       self.loger.log('Model trained and evaluated', 'green')
 
   def label_records(self):

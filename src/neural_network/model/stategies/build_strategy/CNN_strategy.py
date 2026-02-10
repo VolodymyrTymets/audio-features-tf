@@ -31,7 +31,7 @@ class CNNModelBuildStrategy(IModelBuildStrategy):
       # layers.Dropout(0.2),
       # layers.Dense(128, activation='relu'),
       # layers.Dropout(0.3),
-      layers.Dense(128, activation='tanh'),
+      layers.Dense(64, activation='tanh'),
       layers.Dropout(0.5),
       layers.Dense(output_shape, activation='softmax'),
     ])
