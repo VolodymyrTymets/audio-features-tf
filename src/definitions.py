@@ -4,8 +4,8 @@ sr = 44100
 DURATION = 0.2
 FRAGMENT_LENGTH = int(sr / (1 / DURATION))
 
-EPOCHS = 100
-
+EPOCHS = 200
+SUB_EPOCHS = 20
 frame_length = 512
 hop_length = frame_length // 4
 split_frequency = 2000

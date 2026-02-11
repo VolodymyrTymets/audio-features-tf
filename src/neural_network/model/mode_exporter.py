@@ -18,7 +18,12 @@ class MoldeExporter:
     self.export_dir = self.files.join(self.files.ASSETS_PATH, '__af__', f'{self.af_type.value}_{self.model_type.value}')
     self.files.create_folder(self.export_dir)
     self.metrix_file_path = self.files.join(self.export_dir, 'metrics.csv')
+    self.evaluation_file_path = self.files.join(self.export_dir, 'evaluation.csv')
     self.training_plot_path = self.files.join(self.export_dir, 'training_history.png')
+
+  @property
+  def export_path(self):
+    return self.export_dir
 
   def _write_csv(self, file_path, data):
     with open(file_path, 'w', newline='') as file:
@@ -92,7 +97,31 @@ class MoldeExporter:
     data += [[los, val_loss[i], accuracy[i], val_accuracy[i]] for i, los in enumerate(loss)]
     self.loger.log('Saving report...')
     self._write_csv(self.metrix_file_path, data)
-    self.loger.log('Report saved!', 'green')
+    self.loger.log('Metrix saved!', 'green')
+
+  def get_max_evaluation(self, value: str = 'record_acc', aggregation: str = 'max'):
+    if self.files.is_exist(self.evaluation_file_path):
+      content = self._read_csv(self.evaluation_file_path)
+      header = content[0]
+      index = header.index(value)
+      data = content[1:]
+      values = [float(row[index]) for row in data]
+      self.loger.log(f'Max evaluation value for {value}: {max(values)}')
+      return max(values) if aggregation == 'max' else min(values)
+    else:
+      return 0
+
+  def export_evaluation(self, epoch: int,  acc: float, loss: float, record_acc: float):
+    data = []
+    if self.files.is_exist(self.evaluation_file_path):
+      data = self._read_csv(self.evaluation_file_path)
+    else:
+      data.append(['epoch', 'record_acc', 'acc', 'loss'])
+    data += [[epoch, record_acc, acc, loss]]
+    self.loger.log('Saving report...')
+    self._write_csv(self.evaluation_file_path, data)
+    self.loger.log('Evaluation report saved!', 'green')
+
 
   def init_evaluation_export(self, file_path):
     if self.files.is_exist(file_path):
@@ -107,7 +136,7 @@ class MoldeExporter:
 
     self._write_csv(file_path, data)
 
-  def export_evaluation(self, value:int, af_type: AFTypes, model_type: ModelTypes, file_name: str = 'evaluation'):
+  def export_evaluation_report(self, value:int, af_type: AFTypes, model_type: ModelTypes, file_name: str = 'evaluation'):
     file_path = self.files.join(self.files.ASSETS_PATH, '__af__', f'{file_name}.csv')
     self.init_evaluation_export(file_path)
     data = self._read_csv(file_path)
@@ -122,5 +151,6 @@ class MoldeExporter:
           col_index = j
     if row_index is None or col_index is None:
       return
+    self.loger.log(f'Exporting evaluation report for {af_type.value} and {model_type.value}...')
     data[row_index][col_index] = value
     self._write_csv(file_path, data)
