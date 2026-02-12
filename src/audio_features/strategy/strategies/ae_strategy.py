@@ -16,5 +16,4 @@ class AEStrategy(BaseStrategy):
 
   def get_audio_feature(self, signal: np.ndarray):
     ae = self.features.AE(signal=signal, frame_length=self.frame_length, hop_length=self.hop_length)
-    matrix = self._signal_to_image_matrix(ae)
-    return matrix
+    return ae

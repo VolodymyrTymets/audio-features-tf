@@ -38,7 +38,8 @@ class BaseStrategy(IAFStrategy):
       draw.line((i, rows[i], i + 1, rows[i + 1]), fill=0)
     return np.array(img)
 
-  def save_audio_feature(self, matrix: np.ndarray, label: str):
+  def save_audio_feature(self, af: np.ndarray, label: str):
+    matrix = self._signal_to_image_matrix(signal=af) if af.ndim == 1 else af
     file_path = self._get_image_path(label=label)
     normalized = matrix.astype(np.uint8)
 
