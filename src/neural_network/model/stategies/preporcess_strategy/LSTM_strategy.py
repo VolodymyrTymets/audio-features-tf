@@ -17,6 +17,16 @@ class LSTMModelPreprocessStrategy(IModelPreprocessStrategy):
     self.af_strategy = af_strategy
     self.shape = self._calculate_shape()
 
+  def _get_dimension(self, input_shape):
+    return len(input_shape)
+
+  def _get_shape(self, x):
+    if self._get_dimension(x) == 1:
+      return (x[0], 1)
+    if self._get_dimension(x) == 2:
+      return (x[0], x[1])
+    return x
+
   def _calculate_shape(self):
     signal = np.zeros(FRAGMENT_LENGTH)
     af = self.af_strategy.get_audio_feature(signal)
@@ -37,8 +47,7 @@ class LSTMModelPreprocessStrategy(IModelPreprocessStrategy):
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def reshape(self, i):
-    w, h = self.shape
-    return tf.reshape(i, (-1, w, h))
+    return tf.reshape(i, (-1,) + self._get_shape(self.shape))
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def get_audio_feature(self, i):
