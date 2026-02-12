@@ -36,8 +36,7 @@ class CNNModelPreprocessStrategy(IModelPreprocessStrategy):
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def reshape(self, i):
-    w, h = self.shape
-    return tf.reshape(i, (-1, w, h, 1))
+    return tf.reshape(i, ((-1,) + self.shape + (1,)))
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def get_audio_feature(self, i):
