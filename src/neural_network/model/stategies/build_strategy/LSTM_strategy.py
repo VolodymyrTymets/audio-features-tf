@@ -8,7 +8,9 @@ from src.neural_network.model.stategies.build_strategy.build_strategy_interface 
 
 class LSTMModelBuildStrategy(IModelBuildStrategy):
   def _get_dimension(self, input_shape):
-    return len(input_shape[:-1])
+    if input_shape[-1] == 1:
+      return len(input_shape[:-1])
+    return len(input_shape)
 
   def _get_1d_layer(self):
     return [

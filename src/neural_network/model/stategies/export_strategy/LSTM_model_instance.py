@@ -10,7 +10,9 @@ class LSTMExportModelInstance(tf.Module):
       x=tf.TensorSpec(shape=self._get_shape(input_shape), dtype=tf.float32))
 
   def _get_dimension(self, input_shape):
-    return len(input_shape[:-1])
+    if input_shape[-1] == 1:
+      return len(input_shape[:-1])
+    return len(input_shape)
 
   def _get_shape(self, x):
     if self._get_dimension(x) == 1:
