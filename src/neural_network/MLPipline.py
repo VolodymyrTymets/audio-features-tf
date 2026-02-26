@@ -87,6 +87,7 @@ class MLPipeline:
     test_record_acc  = record_evaluator.evaluate_record(file_name)
     model_exporter.export_evaluation_report(model_exporter.get_max_evaluation('record_acc'), self.af_type,
                                             self.model_type, 'record_acc')
+    record_evaluator.time_record(file_name)
 
     self.loger.log(f'Test record accuracy: {test_record_acc}%', 'blue')
     return test_record_acc

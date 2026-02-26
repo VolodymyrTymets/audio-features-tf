@@ -2,6 +2,8 @@ import os
 import numpy as np
 import tensorflow as tf
 import json
+import time
+from contextlib import contextmanager
 
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 from src.audio_features.types import AFTypes
@@ -35,6 +37,8 @@ class ModelRecordBaseEvaluator:
     self.model_type = model_type
     self.strategy = af_strategy
     self.loger = Logger('ModelRecordEvaluator')
+    self._get_audio_feature_times = []
+    self.label_by_model_times = []
 
     if model is None:
       self.loger.log('Loading model...')
@@ -44,15 +48,34 @@ class ModelRecordBaseEvaluator:
       self.model = model
     self.files_path = self.files.join(self.files.ASSETS_PATH, 'test', 'records')
 
+  @contextmanager
+  def _mesure_duration(self, results: list[float]):
+    start = time.perf_counter()
+    try:
+      yield
+    finally:
+      elapsed_ms = (time.perf_counter() - start) * 1000.0
+      results.append(elapsed_ms)
+
   def _label_by_model(self, signal: np.ndarray):
     try:
       signal = pad_array(signal, FRAGMENT_LENGTH)
-      af = self.strategy.get_audio_feature(signal=signal)
-      return label_by_model(self.model, af)
+      with self._mesure_duration(self._get_audio_feature_times):
+        af = self.strategy.get_audio_feature(signal=signal)
+        with self._mesure_duration(self.label_by_model_times):
+          label = label_by_model(self.model, af)
+          return label
     except Exception as e:
       line_label = 'noise'
       self.loger.error(e)
       return line_label, 0
+
+  def get_af_times(self):
+    return self._get_audio_feature_times
+
+  def get_label_by_model_times(self):
+    return self.label_by_model_times
+
 
 class ModelRecordEvaluator(ModelRecordBaseEvaluator):
   def __init__(self, af_strategy: IAFStrategy, af_type: AFTypes, model_type: ModelTypes, model=None):
@@ -106,6 +129,25 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
 
     return evaluate_rate
 
+  def time_record(self, file_name: str,   shift = 0):
+    file_path = self.files.join(self.files_path, file_name)
+    waveform, _ = self.wav_files.read(file_path)
+    count = 0
+    start = time.perf_counter()
+    for chunk in to_chunks(waveform, int(FRAGMENT_LENGTH)):
+      self._label_by_model(chunk)
+      count += 1
+    elapsed_ms = (time.perf_counter() - start)
+
+    af_time = np.mean(self.get_af_times())
+    label_time = np.mean(self.get_label_by_model_times())
+    self.loger.log(f'__________{self.af_type.value}__________')
+    self.loger.log(f'get {self.af_type.value} time: {af_time + shift} ms')
+    self.loger.log(f'label {self.af_type.value} time: {label_time + shift} ms')
+    self.loger.log(f'label record : {elapsed_ms + ((shift * count) / 1000)} s')
+    self.loger.log(f'________________________________________')
+
+
 class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
   def __init__(self,af_strategy: IAFStrategy, af_type: AFTypes, model_type: ModelTypes, model=None):
     super().__init__(af_strategy=af_strategy, af_type=af_type, model_type=model_type, model=model)
@@ -140,7 +182,7 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
         continue
 
     for annotation in annotatations_cords:
-      ax.annotate(annotation['label'], (annotation['x'], annotation['y']), color='black', ha='center', va='bottom', fontsize=12, )
+      ax.annotate(annotation['label'], (annotation['x'], annotation['y']), color='black', ha='center', va='bottom', fontsize=18)
     # Set x and y limits... sadly this is not done automatically for line
     ax.set_xlim(0, len(segments[0]) * len(segments))
     ax.set_ylim(1, -1)
