@@ -10,7 +10,7 @@ def start():
   service = DataSetTransformer(in_path=dataset_name, out_path=dataset_name, sub_sets=sub_sets, labels=labels)
   service.argument(argumentation_types=[
     ArgumentationTypes.time_stretch.value,
-    ArgumentationTypes.normalization.value,
+    # ArgumentationTypes.normalization.value,
     ArgumentationTypes.time_shift.value,
     ArgumentationTypes.pitch_shift.value
   ], except_sets=except_sets, except_labels=except_labels)

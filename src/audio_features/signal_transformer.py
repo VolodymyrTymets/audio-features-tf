@@ -24,6 +24,9 @@ class SignalTransformer:
       fragments.append(fragment)
     return np.array(fragments)
 
+  def normalize_down(self, signal: np.array, db: float = 10):
+    return pyln.normalize.peak(signal, -1 * db)
+
   def normalize(self, signal: np.array):
       # meter = pyln.Meter(self.sr) # create BS.1770 meter
       # loudness = meter.integrated_loudness(np.concatenate([signal, np.zeros(self.sr * 2)]))  # measure loudness range

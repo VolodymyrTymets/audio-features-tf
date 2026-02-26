@@ -5,7 +5,7 @@ import json
 
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 from src.audio_features.types import AFTypes
-from src.definitions import DURATION, FRAGMENT_LENGTH, labels
+from src.definitions import DURATION, FRAGMENT_LENGTH, labels, labels_colors, labels_annotation
 from src.files import Files
 from src.logger.logger_service import Logger
 from src.wav_files import WavFiles
@@ -111,26 +111,49 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
     super().__init__(af_strategy=af_strategy, af_type=af_type, model_type=model_type, model=model)
 
   def color_by_label(self, label):
-    color = 'blue'
-    if label == 'breath':
-      color = 'green'
-    elif label == 'stimulation':
-      color = 'red'
+    color = 'black'
+    index = labels.index(label)
+    if index > -1:
+      return labels_colors[index]
     return color
 
   def _save_plot(self, file_name, segments, colors, ):
     fig, ax = plt.subplots(figsize=(12, 2))
-    line_collection = LineCollection(segments=segments, colors=colors)
-    # Add a collection of lines
-    ax.add_collection(line_collection)
+    ax.add_collection(LineCollection(segments=segments, colors=colors))
 
+
+    # Add annotation
+    annotatations_cords = []
+    for i, segment in enumerate(segments):
+      color = colors[i]
+      try:
+        prev_color = colors[i - 1]
+        if prev_color != color:
+          label = labels[labels_colors.index(color)]
+          if labels_annotation.index(label) > -1:
+            y = 1
+            x = i * len(segment)
+            if len(annotatations_cords) > 0 and labels[labels_colors.index(prev_color)] != 'noise':
+              annotatations_cords[-1]['x'] = int(np.mean([annotatations_cords[-1]['x'], x]))
+            annotatations_cords.append({ 'x': x, 'y': y, 'label': label })
+      except ValueError:
+        continue
+
+    for annotation in annotatations_cords:
+      ax.annotate(annotation['label'], (annotation['x'], annotation['y']), color='black', ha='center', va='bottom', fontsize=12, )
     # Set x and y limits... sadly this is not done automatically for line
     ax.set_xlim(0, len(segments[0]) * len(segments))
     ax.set_ylim(1, -1)
-    ax.legend(
-      [Line2D([0, 1], [0, 1], color='blue'), Line2D([0, 1], [0, 1], color='green'),
-       Line2D([0, 1], [0, 1], color='red')],
-      ['Noise', 'Breath', 'Stimulation'])
+    legends = []
+    legend_labels = []
+    for label in labels:
+      try:
+        labels_annotation.index(label)
+        continue
+      except ValueError:
+        legends.append(Line2D([0], [0], color=self.color_by_label(label), label=label))
+        legend_labels.append(label.capitalize())
+    ax.legend(legends, legend_labels, loc='upper right',)
     dir_name = self.files.join(self.files.ASSETS_PATH, '__af__', f'{self.af_type.value}_{self.model_type.value}',
                                'records')
     self.files.create_folder(dir_name)
@@ -153,6 +176,7 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
       segments.append(segment)
       line_label, _ = self._label_by_model(chunk)
       colors.append(self.color_by_label(line_label))
+
     self._save_plot(file_name, segments, colors)
 
   def label_records(self):

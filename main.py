@@ -6,8 +6,9 @@ from src.neural_network.MLPipline import MLPipeline
 file = Files()
 def main():
 
-  af_types = [AFTypes.mel, AFTypes.mfcc]
-  model_types = [ModelTypes.CNN, ModelTypes.LSTM, ModelTypes.GRU]
+  af_types = [AFTypes.wave]
+  model_types = [ModelTypes.CNN]
+  # model_types = [ModelTypes.CNN, ModelTypes.LSTM, ModelTypes.GRU]
   for af_type in af_types:
     for model_type in model_types:
       print(f'Training {af_type.value} with {model_type.value}')
@@ -15,11 +16,8 @@ def main():
       #   continue
       mpt = MLPipeline(af_type=af_type, model_type=model_type)
       mpt.train(save_af=False)
+      # mpt.evaluate_record('test.wav')
       mpt.label_records()
-
-  # mpt = MLPipeline(af_type=AFTypes.mel, model_type=ModelTypes.CNN)
-  # mpt.train(save_af=False)
-  # mpt.label_records()
 
 
 
