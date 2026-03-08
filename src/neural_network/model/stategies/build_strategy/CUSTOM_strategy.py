@@ -18,17 +18,21 @@ class CUSTOMModelBuildStrategy(IModelBuildStrategy):
                strides=1,
                activation='relu',
                padding='same'),
-      layers.LSTM(32, return_sequences=True),
-      layers.LSTM(32),
+      # Normalize.
+      layers.Normalization(name='normalization'),
+      layers.MaxPooling1D()
     ]
 
   def _get_2d_layer(self):
     return [
-      layers.Conv1D(32, (3,), activation='relu'),
-      layers.MaxPooling1D(),
-      layers.LSTM(32, return_sequences=True),
-      layers.GRU(32, return_sequences=True),
-      # layers.LSTM(32),
+      # Downsample the input.
+      layers.Resizing(32, 32),
+      # Normalize.
+      layers.Normalization(name='normalization'),
+      layers.Conv2D(32, 3, activation='relu'),
+      layers.Conv2D(64, 3, activation='relu'),
+      layers.MaxPooling2D(),
+      layers.Lambda(lambda x: layers.Reshape((x.shape[1], x.shape[2] * x.shape[3]))(x), name='reshape')
     ]
 
   def build(self, input_shape: np.ndarray, output_shape: int, train_ds):
@@ -46,12 +50,15 @@ class CUSTOMModelBuildStrategy(IModelBuildStrategy):
 
     model = models.Sequential()
     model.add(layers.Input(shape=input_shape))
-    model.add(norm_layer, 'normalization')
+    print('--input_shape->', input_shape)
 
     for layer in dimension_layers:
       model.add(layer)
 
-    model.add(layers.Dropout(0.2))
+    model.add(layers.LSTM(32, return_sequences=True))
+    model.add(layers.Dropout(0.5))
+    model.add(layers.GRU(64))
+    model.add(layers.Dropout(0.5))
     model.add(layers.Flatten())
     model.add(layers.Dense(32, activation='tanh'))
     model.add(layers.Dropout(0.5))

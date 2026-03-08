@@ -18,6 +18,6 @@ class PreprocessorStrategyFactory:
     if model_type.value == ModelTypes.LSTM.value:
       return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
     if model_type.value == ModelTypes.CUSTOM.value:
-      return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
+      return CNNModelPreprocessStrategy(af_strategy=self.af_strategy)
     else:
       raise ValueError(f'Model type {model_type.value} not supported')

@@ -19,6 +19,6 @@ class ModelInstanceFactory:
     elif self.model_type.value == ModelTypes.LSTM.value:
       return LSTMExportModelInstance(model=model, label_names=label_names, input_shape=input_shape)
     elif self.model_type.value == ModelTypes.CUSTOM.value:
-      return LSTMExportModelInstance(model=model, label_names=label_names, input_shape=input_shape)
+      return CNNExportModelInstance(model=model, label_names=label_names, input_shape=input_shape)
     else:
       raise ValueError(f'Model type {self.model_type.value} not supported')
