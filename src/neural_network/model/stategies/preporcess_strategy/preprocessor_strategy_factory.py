@@ -11,9 +11,13 @@ class PreprocessorStrategyFactory:
   def create_strategy(self, model_type: ModelTypes):
     if model_type.value == ModelTypes.CNN.value:
       return CNNModelPreprocessStrategy(af_strategy=self.af_strategy)
+    if model_type.value == ModelTypes.ANN.value:
+      return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
     if model_type.value == ModelTypes.GRU.value:
       return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
     if model_type.value == ModelTypes.LSTM.value:
+      return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
+    if model_type.value == ModelTypes.CUSTOM.value:
       return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
     else:
       raise ValueError(f'Model type {model_type.value} not supported')
