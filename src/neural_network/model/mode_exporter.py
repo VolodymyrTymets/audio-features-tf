@@ -127,10 +127,10 @@ class MoldeExporter:
     if self.files.is_exist(file_path):
       return
     self.loger.log('Initializing evaluation report...')
-    data = [["name"] + [_af_type.value for _af_type in AFTypes]]
-    for _model_type in ModelTypes:
-      col = [_model_type.value]
-      for _af_type in AFTypes:
+    data = [["af/model"] + [_model_type.value for _model_type in ModelTypes]]
+    for _af_type in AFTypes:
+      col = [_af_type.value]
+      for _model_type in ModelTypes:
           col.append('0')
       data.append(col)
 
@@ -146,7 +146,7 @@ class MoldeExporter:
     for i, row in enumerate(data):
       header = row if i == 0 else header
       for j, col in enumerate(row):
-        if af_type.value == header[j] and model_type.value == row[0]:
+        if model_type.value == header[j] and af_type.value == row[0]:
           row_index = i
           col_index = j
     if row_index is None or col_index is None:
