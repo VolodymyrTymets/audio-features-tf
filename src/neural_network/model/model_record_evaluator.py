@@ -5,6 +5,8 @@ import json
 import time
 from contextlib import contextmanager
 
+from numpy.core.records import record
+
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 from src.audio_features.types import AFTypes
 from src.definitions import DURATION, FRAGMENT_LENGTH, labels, labels_colors, labels_annotation
@@ -129,7 +131,7 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
 
     return evaluate_rate
 
-  def time_record(self, file_name: str,   shift = 0):
+  def time_record(self, file_name: str,   shift = 0, log=False):
     file_path = self.files.join(self.files_path, file_name)
     waveform, _ = self.wav_files.read(file_path)
     count = 0
@@ -141,11 +143,14 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
 
     af_time = np.mean(self.get_af_times())
     label_time = np.mean(self.get_label_by_model_times())
-    self.loger.log(f'__________{self.af_type.value}__________')
-    self.loger.log(f'get {self.af_type.value} time: {af_time + shift} ms')
-    self.loger.log(f'label {self.af_type.value} time: {label_time + shift} ms')
-    self.loger.log(f'label record : {elapsed_ms + ((shift * count) / 1000)} s')
-    self.loger.log(f'________________________________________')
+    record_time = elapsed_ms + ((shift * count) / 1000)
+    if log == True:
+      self.loger.log(f'__________{self.af_type.value}__________')
+      self.loger.log(f'get {self.af_type.value} time: {af_time + shift} ms')
+      self.loger.log(f'label {self.af_type.value} time: {label_time + shift} ms')
+      self.loger.log(f'label record : {record_time} s')
+      self.loger.log(f'________________________________________')
+    return af_time + shift, label_time + shift, record_time
 
 
 class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
