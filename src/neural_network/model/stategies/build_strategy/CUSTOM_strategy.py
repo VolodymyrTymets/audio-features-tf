@@ -14,12 +14,12 @@ class CUSTOMModelBuildStrategy(IModelBuildStrategy):
 
   def _get_1d_layer(self):
     return [
+      # Normalize.
+      layers.Normalization(name='normalization'),
       layers.Conv1D(32, kernel_size=8,
                strides=1,
                activation='relu',
                padding='same'),
-      # Normalize.
-      layers.Normalization(name='normalization'),
       layers.MaxPooling1D()
     ]
 
@@ -41,6 +41,7 @@ class CUSTOMModelBuildStrategy(IModelBuildStrategy):
       map_func=lambda spec, label: spec))
 
     model_dimension = self._get_dimension(input_shape)
+    print('--model_dimension->', model_dimension)
 
     dimension_layers = []
     if model_dimension == 1:

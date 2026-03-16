@@ -29,7 +29,7 @@ class LSTMModelBuildStrategy(IModelBuildStrategy):
     ]
 
   def build(self, input_shape: np.ndarray, output_shape: int, train_ds):
-    norm_layer = layers.Normalization()
+    norm_layer = layers.Normalization(name='normalization')
     norm_layer.adapt(data=train_ds.map(
       map_func=lambda spec, label: spec))
 
@@ -43,7 +43,7 @@ class LSTMModelBuildStrategy(IModelBuildStrategy):
 
     model = models.Sequential()
     model.add(layers.Input(shape=input_shape))
-    model.add(norm_layer, 'normalization')
+    model.add(norm_layer)
 
     for layer in dimension_layers:
       model.add(layer)

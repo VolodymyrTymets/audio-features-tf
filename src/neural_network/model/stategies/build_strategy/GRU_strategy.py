@@ -8,7 +8,7 @@ from src.neural_network.model.stategies.build_strategy.build_strategy_interface 
 
 class GRUModelBuildStrategy(IModelBuildStrategy):
   def build(self, input_shape: np.ndarray, output_shape: int, train_ds):
-    norm_layer = layers.Normalization()
+    norm_layer = layers.Normalization(name='normalization')
     norm_layer.adapt(data=train_ds.map(
       map_func=lambda spec, label: spec))
 
