@@ -1,4 +1,5 @@
 from src.neural_network.model.stategies.preporcess_strategy.CNN_strategy import CNNModelPreprocessStrategy
+from src.neural_network.model.stategies.preporcess_strategy.LSTM_strategy import LSTMModelPreprocessStrategy
 from src.neural_network.model.types import ModelTypes
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 
@@ -9,6 +10,14 @@ class PreprocessorStrategyFactory:
 
   def create_strategy(self, model_type: ModelTypes):
     if model_type.value == ModelTypes.CNN.value:
+      return CNNModelPreprocessStrategy(af_strategy=self.af_strategy)
+    if model_type.value == ModelTypes.ANN.value:
+      return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
+    if model_type.value == ModelTypes.GRU.value:
+      return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
+    if model_type.value == ModelTypes.LSTM.value:
+      return LSTMModelPreprocessStrategy(af_strategy=self.af_strategy)
+    if model_type.value == ModelTypes.CUSTOM.value:
       return CNNModelPreprocessStrategy(af_strategy=self.af_strategy)
     else:
       raise ValueError(f'Model type {model_type.value} not supported')

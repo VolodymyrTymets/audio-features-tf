@@ -1,4 +1,8 @@
+from src.neural_network.model.stategies.build_strategy.ANN_strategy import ANNModelBuildStrategy
 from src.neural_network.model.stategies.build_strategy.CNN_strategy import CNNModelBuildStrategy
+from src.neural_network.model.stategies.build_strategy.LSTM_strategy import LSTMModelBuildStrategy
+from src.neural_network.model.stategies.build_strategy.GRU_strategy import GRUModelBuildStrategy
+from src.neural_network.model.stategies.build_strategy.CUSTOM_strategy import CUSTOMModelBuildStrategy
 from src.neural_network.model.types import ModelTypes
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 
@@ -8,8 +12,16 @@ class BuildStrategyFactory:
     self.af_strategy = af_strategy
 
   def create_strategy(self, model_type: ModelTypes):
+    if model_type.value == ModelTypes.ANN.value:
+      return ANNModelBuildStrategy()
     if model_type.value == ModelTypes.CNN.value:
       return CNNModelBuildStrategy()
+    if model_type.value == ModelTypes.LSTM.value:
+      return LSTMModelBuildStrategy()
+    if model_type.value == ModelTypes.GRU.value:
+      return GRUModelBuildStrategy()
+    if model_type.value == ModelTypes.CUSTOM.value:
+      return CUSTOMModelBuildStrategy()
     else:
       raise ValueError(f'Model type {model_type.value} not supported')
 

@@ -16,6 +16,9 @@ class DataSetFileWorker:
     self.wave_file = WavFiles()
     self.logger = Logger('DataSetFileWorker')
 
+  def get_in_path(self):
+    return self.files.join(ASSETS_PATH, self.in_path)
+
   def write_signal(self, signal: np.ndarray, sr: int, file_path: str, prefix: str):
     out_path = file_path.replace(self.in_path, self.out_path)
     self.files.create_folder(out_path)

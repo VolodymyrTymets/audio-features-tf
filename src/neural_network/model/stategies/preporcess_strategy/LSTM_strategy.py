@@ -10,12 +10,22 @@ from src.neural_network.model.stategies.preporcess_strategy.preprocess_strategy_
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 
 
-class CNNModelPreprocessStrategy(IModelPreprocessStrategy):
+class LSTMModelPreprocessStrategy(IModelPreprocessStrategy):
   def __init__(self, af_strategy: IAFStrategy):
     self.files = Files()
     self.loger = Logger('CNNModelPreprocessStrategy')
     self.af_strategy = af_strategy
     self.shape = self._calculate_shape()
+
+  def _get_dimension(self, input_shape):
+    return len(input_shape)
+
+  def _get_shape(self, x):
+    if self._get_dimension(x) == 1:
+      return (x[0], 1)
+    if self._get_dimension(x) == 2:
+      return (x[0], x[1])
+    return x
 
   def _calculate_shape(self):
     signal = np.zeros(FRAGMENT_LENGTH)
@@ -24,7 +34,8 @@ class CNNModelPreprocessStrategy(IModelPreprocessStrategy):
 
   def get_bunch_audio_feature(self, waveform):
     bunch = waveform.numpy()
-    return np.array([self.af_strategy.get_audio_feature(signal) for signal in bunch])
+    res = np.array([self.af_strategy.get_audio_feature(signal) for signal in bunch])
+    return res
 
   def save_bunch_audio_feature(self, af, labels, label_names):
     bunch = af.numpy()
@@ -36,7 +47,7 @@ class CNNModelPreprocessStrategy(IModelPreprocessStrategy):
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def reshape(self, i):
-    return tf.reshape(i, ((-1,) + self.shape + (1,)))
+    return tf.reshape(i, (-1,) + self._get_shape(self.shape))
 
   @tf.function(input_signature=[tf.TensorSpec(shape=[None, FRAGMENT_LENGTH], dtype=tf.float32)])
   def get_audio_feature(self, i):

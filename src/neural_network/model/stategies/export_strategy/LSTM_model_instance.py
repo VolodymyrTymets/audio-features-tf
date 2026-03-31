@@ -1,17 +1,18 @@
 import tensorflow as tf
 
 
-class CNNExportModelInstance(tf.Module):
+class LSTMExportModelInstance(tf.Module):
   def __init__(self, model, input_shape, label_names):
     self.model = model
     self.label_names = label_names
     self.input_shape = input_shape
-
     self.__call__.get_concrete_function(
       x=tf.TensorSpec(shape=self._get_shape(input_shape), dtype=tf.float32))
 
   def _get_dimension(self, input_shape):
-    return len(input_shape[:-1])
+    if input_shape[-1] == 1:
+      return len(input_shape[:-1])
+    return len(input_shape)
 
   def _get_shape(self, x):
     if self._get_dimension(x) == 1:
@@ -22,7 +23,7 @@ class CNNExportModelInstance(tf.Module):
 
   @tf.function
   def __call__(self, x):
-    x = tf.reshape(x, [-1] + self._get_shape(self.input_shape) + [1])
+    x = tf.reshape(x, [-1] + self._get_shape(self.input_shape))
     result = self.model(x, training=False)
 
     class_ids = tf.argmax(result, axis=-1)

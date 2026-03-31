@@ -29,7 +29,6 @@ class DataSetFilter(DataSetFileWorker):
       if len(signal) >= FRAGMENT_LENGTH:
         af = strategy.get_audio_feature(signal=signal)
         signal_label, = label_by_model(model, af)
-        signal_label = signal_label.decode("utf-8")
         if label != signal_label:
           out_folder = self.files.join(ASSETS_PATH, self.in_path, set_name, '__filtered__', signal_label)
           self.files.create_folder(out_folder)

@@ -14,5 +14,4 @@ class BWtrategy(BaseStrategy):
 
   def get_audio_feature(self, signal: np.ndarray):
     af = self.features.BW(signal=signal, sr=self.sr, frame_length=self.frame_length, hop_length=self.hop_length)
-    matrix = self._signal_to_image_matrix(af)
-    return matrix
+    return af

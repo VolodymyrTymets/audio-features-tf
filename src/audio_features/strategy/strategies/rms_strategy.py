@@ -16,5 +16,4 @@ class RMStrategy(BaseStrategy):
 
   def get_audio_feature(self, signal: np.ndarray):
     rms = self.features.RSME(signal=signal, frame_length=self.frame_length, hop_length=self.hop_length)
-    matrix = self._signal_to_image_matrix(rms)
-    return matrix
+    return rms
