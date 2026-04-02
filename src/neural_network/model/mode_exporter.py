@@ -53,11 +53,15 @@ class MoldeExporter:
    return None, None
 
 
-  def export_model(self, model, label_names, input_shape, target_path: str = None):
+  def export_model(self, model, label_names, input_shape, target_path: str):
     self.loger.log('Saving model...', 'blue')
     export = ModelInstanceFactory(self.model_type).create_model_instance(model, label_names, input_shape)
     tf.saved_model.save(export, target_path)
     self.loger.log('Model is saved to: {}'.format(target_path), 'green')
+
+  def load_model(self, target_path: str):
+    self.loger.log('--> Loading model...', 'blue')
+    return tf.saved_model.load(export_dir=target_path)
 
 
   def export_training_plot(self):

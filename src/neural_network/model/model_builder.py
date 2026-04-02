@@ -10,7 +10,7 @@ class ModelBuilder:
     self.strategy = strategy
     self.files = Files()
     self.loger = Logger('ModelBuilder')
-    self.checkpoint_dir = self.files.join(target_path, 'checkpoints')
+    self.checkpoint_dir = self.files.join(target_path, 'model', 'checkpoints')
     self.checkpoint_path = self.files.join(self.checkpoint_dir, '{epoch:02d}.weights.h5')
 
   def _get_latest_checkpoint(self):

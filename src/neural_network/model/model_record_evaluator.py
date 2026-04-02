@@ -43,9 +43,7 @@ class ModelRecordBaseEvaluator:
     self.label_by_model_times = []
 
     if model is None:
-      self.loger.log('Loading model...')
-      model_dir = self.files.join(self.files.ASSETS_PATH, 'models', f'm_{DURATION}_{self.af_type.value}_{self.model_type.value}')
-      self.model = tf.saved_model.load(model_dir)
+      raise ValueError("ModelRecordBaseEvaluator Model not set")
     else:
       self.model = model
     self.files_path = self.files.join(self.files.ASSETS_PATH, 'test', 'records')
@@ -190,7 +188,7 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
       return labels_colors[index]
     return color
 
-  def _save_plot(self, file_name, segments, colors, ):
+  def _save_plot(self, file_name: str, export_path: str, segments, colors):
     fig, ax = plt.subplots(figsize=(12, 2))
     ax.add_collection(LineCollection(segments=segments, colors=colors))
 
@@ -227,13 +225,12 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
         legends.append(Line2D([0], [0], color=self.color_by_label(label), label=label))
         legend_labels.append(label.capitalize())
     ax.legend(legends, legend_labels, loc='upper right',)
-    dir_name = self.files.join(self.files.ASSETS_PATH, '__af__', f'{self.af_type.value}_{self.model_type.value}',
-                               'records')
+    dir_name = self.files.join(export_path, 'records')
     self.files.create_folder(dir_name)
     plt.savefig(self.files.join(dir_name, file_name.replace('.wav', '.png')))
     print(f'[{DURATION}_{self.af_type.value}_{self.model_type.value}] Labeled: {file_name}')
 
-  def label_record(self, file_name: str):
+  def label_record(self, file_name: str, export_path: str):
     file_path = self.files.join(self.files_path, file_name)
     waveform, _ = self.wav_files.read(file_path)
 
@@ -252,11 +249,11 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
       color = color if color != labels_colors[0] else (labels_colors[0] if i % 2 == 0 else 'black' )
       colors.append(color)
 
-    self._save_plot(file_name, segments, colors)
+    self._save_plot(file_name, export_path, segments, colors)
 
-  def label_records(self):
+  def label_records(self, export_path: str):
     for file in self.files.get_only_files(self.files_path):
       if file.endswith('.wav'):
-        self.label_record(file)
+        self.label_record(file, export_path)
 
 
