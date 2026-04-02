@@ -104,6 +104,7 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
     file_path = self.files.join(self.files_path, file_name)
     waveform, sr = self.wav_files.read(file_path)
     annotations = self._load_annotation(file_name)
+    model_annotation = []
 
     timestamp = 0
     chunks = [x for x in to_chunks(waveform, int(FRAGMENT_LENGTH))]
@@ -115,6 +116,7 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
       start = timestamp
       end = timestamp + duration
       line_label, prediction = self._label_by_model(chunk)
+      model_annotation.append([start, end, line_label])
       chunk_annotation_label = ''
       for label in labels:
         chunk_annotation = annotations.get(label, {})
@@ -122,13 +124,17 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
           is_chunk_in_annotation = self.is_in_timestamp(start, end, chunk_annotation)
           if is_chunk_in_annotation:
             chunk_annotation_label = label
+            break
         else:
           chunk_annotation_label = label
-
       chunk_evaluate_rate = rate_per_chunk if line_label == chunk_annotation_label else 0
       timestamp += duration
       evaluate_rate += chunk_evaluate_rate
-
+    # model_annotation_str = '\n'.join([f'{line_label}:[{start},{end}]' for start, end, line_label in model_annotation])
+    self.loger.log(f'Record labels: {file_name}:')
+    # self.loger.log(model_annotation_str)
+    self.loger.log(f'Evaluate rate: {evaluate_rate} %')
+    self.loger.log(f'')
     return evaluate_rate
 
   def time_record(self, file_name: str,   shift = 0, log=False):
@@ -151,6 +157,26 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
       self.loger.log(f'label record : {record_time} s')
       self.loger.log(f'________________________________________')
     return af_time + shift, label_time + shift, record_time
+
+  def evaluate_records(self):
+    test_record_acc = []
+    for file in self.files.get_only_files(self.files_path):
+      if file.endswith('.wav'):
+        test_record_acc.append(self.evaluate_record(file))
+    return np.mean(test_record_acc)
+
+  def time_records(self, shift = 0):
+    af_time_acc = []
+    fragment_time_acc = []
+    record_time_acc = []
+    for file in self.files.get_only_files(self.files_path):
+      if file.endswith('.wav'):
+        af_time, fragment_time, record_time = self.time_record(file, shift)
+        af_time_acc.append(af_time)
+        fragment_time_acc.append(fragment_time)
+        record_time_acc.append(record_time)
+    return np.mean(af_time_acc), np.mean(fragment_time_acc), np.mean(record_time_acc)
+
 
 
 class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
@@ -215,14 +241,16 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
     segments = []
     colors = []
     x = 0
-    for chunk in to_chunks(waveform, int(FRAGMENT_LENGTH)):
+    for i, chunk in enumerate(to_chunks(waveform, int(FRAGMENT_LENGTH))):
       segment = []
       for y in chunk:
         segment.append((x, y))
         x = x + 1
       segments.append(segment)
       line_label, _ = self._label_by_model(chunk)
-      colors.append(self.color_by_label(line_label))
+      color = self.color_by_label(line_label)
+      color = color if color != labels_colors[0] else (labels_colors[0] if i % 2 == 0 else 'black' )
+      colors.append(color)
 
     self._save_plot(file_name, segments, colors)
 

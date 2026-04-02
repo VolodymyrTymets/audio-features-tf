@@ -66,7 +66,7 @@ class MLPipeline:
             model_exporter.export_model(model, label_names, input_shape, target_path=target_path)
             model_exporter.export_model(model, label_names, input_shape, target_path=self._model_dir)
             record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type)
-            test_record_acc = record_evaluator.evaluate_record('test.wav')
+            test_record_acc = record_evaluator.evaluate_records()
 
           model_exporter.export_evaluation(epochs, record_acc=test_record_acc, acc=test_acc, loss=test_loss)
 
@@ -81,14 +81,14 @@ class MLPipeline:
     record_evaluator = ModelRecordColorLabeler(self.af_strategy, self.af_type, self.model_type, model=None)
     record_evaluator.label_records()
 
-  def evaluate_record(self, file_name: str):
+  def evaluate_records(self):
     record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type, model=None)
     model_exporter = MoldeExporter(model_type=self.model_type, af_type=self.af_type)
-    test_record_acc  = record_evaluator.evaluate_record(file_name)
+    test_record_acc = record_evaluator.evaluate_records()
     model_exporter.export_evaluation_report(model_exporter.get_max_evaluation('record_acc'), self.af_type,
                                             self.model_type, 'record_acc')
 
-    _, fragment_time, record_time = record_evaluator.time_record(file_name, shift=30)
+    _, fragment_time, record_time = record_evaluator.time_records(shift=30)
     model_exporter.export_evaluation_report(fragment_time, self.af_type, self.model_type, 'fragment_time')
     model_exporter.export_evaluation_report(record_time, self.af_type, self.model_type, 'record_time')
 

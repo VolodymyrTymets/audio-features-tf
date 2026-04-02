@@ -7,7 +7,7 @@ file = Files()
 def main():
 
   af_types = [AFTypes.mfcc]
-  model_types = [ModelTypes.ANN, ModelTypes.CNN, ModelTypes.LSTM, ModelTypes.GRU]
+  model_types = [ModelTypes.CUSTOM]
   # model_types = [ModelTypes.CNN, ModelTypes.LSTM, ModelTypes.GRU]
   for af_type in af_types:
     for model_type in model_types:
@@ -15,8 +15,8 @@ def main():
       # if file.is_exist(file.join(file.ASSETS_PATH, '__af__', f'{af_type.value}_{model_type.value}')):
       #   continue
       mpt = MLPipeline(af_type=af_type, model_type=model_type)
-      mpt.train(save_af=False)
-      mpt.evaluate_record('test.wav')
+      # mpt.train(save_af=False)
+      mpt.evaluate_records()
       mpt.label_records()
 
 
