@@ -61,8 +61,15 @@ class ModelBuilder:
       mode='max',
       save_best_only=True)
 
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+      monitor='val_loss',
+      patience=2,
+      verbose=1,
+      restore_best_weights=True
+    )
+
     self.loger.log(f'Training mode from epoch: {initial_epoch} to {epochs}...', 'blue')
-    history = self.model.fit(train_ds, validation_data=val_ds, epochs=epochs, initial_epoch=initial_epoch, callbacks=[cp_callback])
+    history = self.model.fit(train_ds, validation_data=val_ds, epochs=epochs, initial_epoch=initial_epoch, callbacks=[cp_callback, early_stopping])
     self.loger.log(f'Model trained: {self.model.name}', 'green')
     self.model.save_weights(self.checkpoint_path.format(epoch=epochs))
     return history
