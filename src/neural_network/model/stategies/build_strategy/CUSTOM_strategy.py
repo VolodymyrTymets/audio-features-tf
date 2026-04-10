@@ -29,8 +29,8 @@ class CUSTOMModelBuildStrategy(IModelBuildStrategy):
       layers.Resizing(32, 32),
       # Normalize.
       layers.Normalization(name='normalization'),
-      layers.Conv2D(32, 3, activation='relu'),
       layers.Conv2D(64, 3, activation='relu'),
+      layers.Conv2D(32, 3, activation='relu'),
       layers.MaxPooling2D(),
       layers.Lambda(lambda x: layers.Reshape((x.shape[1], x.shape[2] * x.shape[3]))(x), name='reshape')
     ]
@@ -56,9 +56,7 @@ class CUSTOMModelBuildStrategy(IModelBuildStrategy):
     for layer in dimension_layers:
       model.add(layer)
 
-    model.add(layers.LSTM(32, return_sequences=True))
-    model.add(layers.Dropout(0.5))
-    model.add(layers.GRU(64))
+    model.add(layers.GRU(32))
     model.add(layers.Dropout(0.5))
     model.add(layers.Flatten())
     model.add(layers.Dense(32, activation='tanh'))
