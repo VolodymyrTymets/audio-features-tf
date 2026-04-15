@@ -56,7 +56,7 @@ class CUSTOMModelBuildStrategy(IModelBuildStrategy):
     for layer in dimension_layers:
       model.add(layer)
 
-    model.add(layers.GRU(32))
+    model.add(layers.GRU(64))
     model.add(layers.Dropout(0.5))
     model.add(layers.Flatten())
     model.add(layers.Dense(32, activation='tanh'))

@@ -52,6 +52,11 @@ class MoldeExporter:
      return metrics, epoch
    return None, None
 
+  def export_model_plot(self, model, target_path: str):
+    self.loger.log('Saving model plot...', 'blue')
+    tf.keras.utils.plot_model(model, to_file=target_path, show_shapes=True, show_layer_names=True, show_layer_activations=True, show_trainable=True)
+    self.loger.log('Model plot is saved to: {}'.format(target_path), 'green')
+
 
   def export_model(self, model, label_names, input_shape, target_path: str):
     self.loger.log('Saving model...', 'blue')

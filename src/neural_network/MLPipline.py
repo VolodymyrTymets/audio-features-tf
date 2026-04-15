@@ -47,6 +47,7 @@ class MLPipeline:
     for example, example_spect_labels in train_ds.take(1):
       input_shape = example.shape[1:]
       model = model_builder.build(input_shape, output_shape=len(label_names), train_ds=train_ds)
+      self.model_exporter.export_model_plot(model, target_path=os.path.join(self.model_exporter.export_path, 'model_plot.png'))
 
       for epochs in range(SUB_EPOCHS, EPOCHS + SUB_EPOCHS, SUB_EPOCHS):
         result = model_builder.train(train_ds, val_ds, epochs=epochs)
