@@ -12,7 +12,7 @@ split_frequency = 2000
 n_mels = 64
 n_mfcc = 64
 
-labels = ['noise', 'stimulation']
-labels_colors = ['blue', 'red']
+labels = ['noise', 'stimulation', 'wrist_extension', 'ecg']
+labels_colors = ['blue', 'red', 'green', 'black', 'orange']
 labels_annotation = []
 sub_sets = ['train', 'test']

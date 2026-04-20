@@ -102,6 +102,8 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
     file_path = self.files.join(self.files_path, file_name)
     waveform, sr = self.wav_files.read(file_path)
     annotations = self._load_annotation(file_name)
+    if not annotations.keys():
+      return 0
     model_annotation = []
 
     timestamp = 0
@@ -118,6 +120,7 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
       chunk_annotation_label = ''
       for label in labels:
         chunk_annotation = annotations.get(label, {})
+
         if chunk_annotation:
           is_chunk_in_annotation = self.is_in_timestamp(start, end, chunk_annotation)
           if is_chunk_in_annotation:
@@ -245,8 +248,9 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
         x = x + 1
       segments.append(segment)
       line_label, _ = self._label_by_model(chunk)
+
       color = self.color_by_label(line_label)
-      color = color if color != labels_colors[0] else (labels_colors[0] if i % 2 == 0 else 'black' )
+      # color = color if color != labels_colors[0] else (labels_colors[0] if i % 2 == 0 else 'black' )
       colors.append(color)
 
     self._save_plot(file_name, export_path, segments, colors)
