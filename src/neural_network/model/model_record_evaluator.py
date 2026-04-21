@@ -10,6 +10,7 @@ from numpy.core.records import record
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 from src.audio_features.types import AFTypes
 from src.definitions import DURATION, FRAGMENT_LENGTH, labels, labels_colors, labels_annotation
+from src.localization import t
 from src.files import Files
 from src.logger.logger_service import Logger
 from src.wav_files import WavFiles
@@ -199,6 +200,10 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
         continue
       except ValueError:
         legends.append(Line2D([0], [0], color=self.color_by_label(label), label=label))
+        # try:
+        #   label = t['ua'][label].capitalize()
+        # except KeyError:
+        #   label = label.capitalize()
         legend_labels.append(label.capitalize())
     ax.legend(legends, legend_labels, loc='upper right',)
     dir_name = self.files.join(self.files.ASSETS_PATH, '__af__', f'{self.af_type.value}_{self.model_type.value}',
