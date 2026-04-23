@@ -74,6 +74,9 @@ class MoldeExporter:
     if metrics is None or epoch is None:
       return
 
+    plt.rcParams.update({
+      'font.size': 18,
+    })
     plt.figure(figsize=(16, 6))
     plt.subplot(1, 2, 1)
     plt.plot(epoch, metrics['loss'], metrics['val_loss'])
