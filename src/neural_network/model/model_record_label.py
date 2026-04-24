@@ -61,7 +61,8 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
 
   def _save_plot(self, file_name: str, export_path: str, segments, colors, segments_labels):
     plt.rcParams.update({
-      'font.size': 12,
+      'font.size': 10,
+      'legend.fontsize': 14,
     })
     fig, ax = plt.subplots(figsize=(12, 2))
     ax.add_collection(LineCollection(segments=segments, colors=colors))
