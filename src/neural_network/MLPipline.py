@@ -9,7 +9,7 @@ from src.neural_network.model.stategies.build_strategy.build_strategy_factory im
 from src.neural_network.model.stategies.preporcess_strategy.preprocessor_strategy_factory import \
   PreprocessorStrategyFactory
 from src.neural_network.model.types import ModelTypes
-from src.definitions import DURATION, EPOCHS, sr as SR, frame_length, hop_length, SUB_EPOCHS
+from src.definitions import EPOCHS, sr as SR, frame_length, hop_length, SUB_EPOCHS
 
 from src.neural_network.model.model_preprocessor import ModelPreprocessor
 from src.neural_network.model.model_builder import ModelBuilder
@@ -37,13 +37,13 @@ class MLPipeline:
     self.preprocessor_strategy = PreprocessorStrategyFactory(af_strategy=self.af_strategy).create_strategy(model_type)
     self.build_strategy = BuildStrategyFactory(af_strategy=self.af_strategy).create_strategy(model_type)
 
-  def train(self, save_af=False, save_model=True):
+  def train(self, save_af=False, save_model=True, data_set_name:str = 'data_set'):
     model_preprocessor = ModelPreprocessor(strategy=self.preprocessor_strategy)
     model_builder = ModelBuilder(strategy=self.build_strategy, target_path=self.model_exporter.export_path)
     mode_evaluator = ModelEvaluator()
 
     train_ds, val_ds, test_ds, label_names = model_preprocessor.preprocess(
-      data_set_path=self.files.join(self.files.ASSETS_PATH, f'data_set_{DURATION}'), save_af=save_af
+      data_set_path=self.files.join(self.files.ASSETS_PATH, data_set_name), save_af=save_af
     )
     for example, example_spect_labels in train_ds.take(1):
       input_shape = example.shape[1:]
@@ -66,9 +66,9 @@ class MLPipeline:
             self.model_exporter.export_model(model, label_names, input_shape, target_path=target_path)
 
             saved_model = self.model_exporter.load_model(target_path=target_path)
-            record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type, model=saved_model)
+            record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type, model=saved_model, data_set_name=data_set_name)
             test_record_acc = record_evaluator.evaluate_records()
-            record_evaluator = ModelRecordColorLabeler(self.af_strategy, self.af_type, self.model_type, model=saved_model)
+            record_evaluator = ModelRecordColorLabeler(self.af_strategy, self.af_type, self.model_type, model=saved_model, data_set_name=data_set_name)
             record_evaluator.label_records(export_path=epoch_path)
 
           self.model_exporter.export_evaluation(epochs, record_acc=test_record_acc, acc=test_acc, loss=test_loss)
@@ -85,14 +85,14 @@ class MLPipeline:
           self.loger.log(f'Test record accuracy: {test_record_acc}%', 'blue')
           self.loger.log('Model trained and evaluated', 'green')
 
-  def label_records(self):
+  def label_records(self,  data_set_name:str = 'data_set'):
     model = self.model_exporter.load_model(target_path=os.path.join(self.model_exporter.export_path, 'model'))
-    record_evaluator = ModelRecordColorLabeler(self.af_strategy, self.af_type, self.model_type, model=model)
+    record_evaluator = ModelRecordColorLabeler(self.af_strategy, self.af_type, self.model_type, model=model, data_set_name=data_set_name)
     record_evaluator.label_records(self.model_exporter.export_path)
 
-  def evaluate_records(self):
+  def evaluate_records(self,  data_set_name:str = 'data_set'):
     model = self.model_exporter.load_model(target_path=os.path.join(self.model_exporter.export_path, 'model'))
-    record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type, model=model)
+    record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type, model=model, data_set_name=data_set_name)
 
     test_record_acc = record_evaluator.evaluate_records()
     self.model_exporter.export_evaluation_report(self.model_exporter.get_max_evaluation('record_acc'), self.af_type,

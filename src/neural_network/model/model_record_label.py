@@ -12,8 +12,8 @@ from src.neural_network.model.model_record_evaluator import ModelRecordBaseEvalu
 
 
 class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
-  def __init__(self,af_strategy: IAFStrategy, af_type: AFTypes, model_type: ModelTypes, model=None):
-    super().__init__(af_strategy=af_strategy, af_type=af_type, model_type=model_type, model=model)
+  def __init__(self,af_strategy: IAFStrategy, af_type: AFTypes, model_type: ModelTypes, model=None, data_set_name: str = 'data_set'):
+    super().__init__(af_strategy=af_strategy, af_type=af_type, model_type=model_type, model=model, data_set_name=data_set_name)
 
   def color_by_label(self, label):
     color = 'black'
@@ -30,7 +30,6 @@ class ModelRecordColorLabeler(ModelRecordBaseEvaluator):
       if label in segments_labels:
         if str(label) in labels_annotation:
           if labels_annotation_legend not in legend_labels:
-            print('add legend',labels_annotation_legend)
             legends.append(Line2D([0], [0], color=self.color_by_label(label), label=labels_annotation_legend))
             legend_labels.append(labels_annotation_legend)
           continue

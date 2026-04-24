@@ -32,7 +32,7 @@ def to_chunks(lst, n):
 
 
 class ModelRecordBaseEvaluator:
-  def __init__(self,af_strategy: IAFStrategy, af_type: AFTypes, model_type: ModelTypes, model=None):
+  def __init__(self,af_strategy: IAFStrategy, af_type: AFTypes, model_type: ModelTypes, model=None, data_set_name: str = 'data_set'):
     self.files = Files()
     self.wav_files = WavFiles()
     self.af_type = af_type
@@ -46,7 +46,7 @@ class ModelRecordBaseEvaluator:
       raise ValueError("ModelRecordBaseEvaluator Model not set")
     else:
       self.model = model
-    self.files_path = self.files.join(self.files.ASSETS_PATH, 'test', 'records')
+    self.files_path = self.files.join(self.files.ASSETS_PATH, data_set_name, 'records')
 
   @contextmanager
   def _mesure_duration(self, results: list[float]):
@@ -78,8 +78,8 @@ class ModelRecordBaseEvaluator:
 
 
 class ModelRecordEvaluator(ModelRecordBaseEvaluator):
-  def __init__(self, af_strategy: IAFStrategy, af_type: AFTypes, model_type: ModelTypes, model=None):
-    super().__init__(af_strategy=af_strategy, af_type=af_type, model_type=model_type, model=model)
+  def __init__(self, af_strategy: IAFStrategy, af_type: AFTypes, model_type: ModelTypes, model=None, data_set_name: str = 'data_set'):
+    super().__init__(af_strategy=af_strategy, af_type=af_type, model_type=model_type, model=model, data_set_name=data_set_name)
 
   def _load_annotation(self, file_name: str):
     annotation_file = file_name.replace('.wav', f'.annotation.{DURATION}.json')

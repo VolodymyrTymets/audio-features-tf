@@ -28,12 +28,14 @@ class DataSetFileWorker:
     return file_name
 
   def read_data_set(self, log: bool = True):
+    ds_path = self.files.join(ASSETS_PATH, self.in_path)
+    print('Start reading data set:' , ds_path)
     for set_name in self.set_names:
       for label in self.labels:
         try:
-          path = self.files.join(ASSETS_PATH, self.in_path, set_name, str(label))
+          path = self.files.join(ds_path, set_name, str(label))
         except Exception as e:
-          print('Error in label:', [ASSETS_PATH, self.in_path, set_name, label])
+          print('Error in label:', [ds_path, set_name, label])
           print(e)
           continue
         files = self.files.get_only_files(path)

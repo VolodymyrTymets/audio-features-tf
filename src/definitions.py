@@ -12,6 +12,7 @@ split_frequency = 2000
 n_mels = 64
 n_mfcc = 64
 
+dataset_name = f'data_set_ecg_distance_{DURATION}'
 distance_points = [5, 10, 15]
 labels = ['noise', 'stimulation', 'wrist_extension', 'ecg'] + [str(x) for x in distance_points]
 labels_colors = ['blue', 'red', 'green', 'black'] + ['orange'] * len(distance_points)

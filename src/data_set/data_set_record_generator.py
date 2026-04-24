@@ -82,5 +82,6 @@ class DataSetRecordGenerator(DataSetFileWorker):
       test_record = np.concatenate((test_record, record))
       test_record = np.concatenate((test_record, between_record))
 
-    file_name = self.write_signal(test_record, SR, out_path, f'test')
+    file_name = self.write_signal(test_record, SR, self.files.join(self.get_in_path(), 'records'), f'test')
     self._sve_annotation(annotation=annotations, path=file_name.replace('.wav', '.annotation.json'))
+
