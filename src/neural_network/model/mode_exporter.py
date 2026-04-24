@@ -166,3 +166,8 @@ class MoldeExporter:
     self.loger.log(f'Exporting evaluation report for {af_type.value} and {model_type.value}...')
     data[row_index][col_index] = value
     self._write_csv(file_path, data)
+
+  def export_records_report(self, af_type: AFTypes, model_type: ModelTypes, data: list):
+    file_path = self.files.join(self.files.ASSETS_PATH, '__af__', f'{af_type.value}_{model_type.value}', 'records', f'record_report.csv')
+    self._write_csv(file_path, data)
+

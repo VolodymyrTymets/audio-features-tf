@@ -1,23 +1,17 @@
 import os
 import numpy as np
-import tensorflow as tf
 import json
 import time
+import csv
 from contextlib import contextmanager
-
-from numpy.core.records import record
 
 from src.audio_features.strategy.strategies.strategy_interface import IAFStrategy
 from src.audio_features.types import AFTypes
-from src.definitions import DURATION, FRAGMENT_LENGTH, labels, labels_colors, labels_annotation
+from src.definitions import FRAGMENT_LENGTH, labels
 from src.files import Files
 from src.logger.logger_service import Logger
 from src.wav_files import WavFiles
-from matplotlib import pyplot as plt
-from matplotlib.collections import LineCollection
-from matplotlib.lines import Line2D
 from src.neural_network.utils import label_by_model
-
 from src.neural_network.model.types import ModelTypes
 
 def pad_array(arr, length):
@@ -82,7 +76,7 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
     super().__init__(af_strategy=af_strategy, af_type=af_type, model_type=model_type, model=model, data_set_name=data_set_name)
 
   def _load_annotation(self, file_name: str):
-    annotation_file = file_name.replace('.wav', f'.annotation.{DURATION}.json')
+    annotation_file = file_name.replace('.wav', f'.annotation.json')
     annotation_path = self.files.join(self.files_path, annotation_file)
     annotations = {}
     if os.path.exists(annotation_path):
@@ -117,18 +111,13 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
       end = timestamp + duration
       line_label, prediction = self._label_by_model(chunk)
       model_annotation.append([start, end, line_label])
-      chunk_annotation_label = ''
-      for label in labels:
-        chunk_annotation = annotations.get(label, {})
-
-        if chunk_annotation:
-          is_chunk_in_annotation = self.is_in_timestamp(start, end, chunk_annotation)
-          if is_chunk_in_annotation:
-            chunk_annotation_label = label
-            break
-        else:
-          chunk_annotation_label = label
-      chunk_evaluate_rate = rate_per_chunk if line_label == chunk_annotation_label else 0
+      annotation_label = labels[0]
+      for key in annotations.keys():
+        timestamps = annotations[key]
+        if self.is_in_timestamp(start, end, timestamps):
+          annotation_label = key
+          break
+      chunk_evaluate_rate = rate_per_chunk if line_label == annotation_label else 0
       timestamp += duration
       evaluate_rate += chunk_evaluate_rate
     # model_annotation_str = '\n'.join([f'{line_label}:[{start},{end}]' for start, end, line_label in model_annotation])
@@ -161,10 +150,14 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
 
   def evaluate_records(self):
     test_record_acc = []
+    report = [['name', '%']]
     for file in self.files.get_only_files(self.files_path):
       if file.endswith('.wav'):
         test_record_acc.append(self.evaluate_record(file))
-    return np.mean(test_record_acc)
+        report.append([file.replace('.wav', ''), test_record_acc[-1]])
+    mean = np.mean(test_record_acc)
+    report.append(['Mean', mean])
+    return mean, report
 
   def time_records(self, shift = 0):
     af_time_acc = []
@@ -177,3 +170,8 @@ class ModelRecordEvaluator(ModelRecordBaseEvaluator):
         fragment_time_acc.append(fragment_time)
         record_time_acc.append(record_time)
     return np.mean(af_time_acc), np.mean(fragment_time_acc), np.mean(record_time_acc)
+
+  def save_report(self, file_path,  data: list[list[str]]):
+    with open(file_path, 'w', newline='') as file:
+      writer = csv.writer(file)
+      writer.writerows(data)

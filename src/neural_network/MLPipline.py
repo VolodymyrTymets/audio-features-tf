@@ -67,7 +67,8 @@ class MLPipeline:
 
             saved_model = self.model_exporter.load_model(target_path=target_path)
             record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type, model=saved_model, data_set_name=data_set_name)
-            test_record_acc = record_evaluator.evaluate_records()
+            test_record_acc, record_reports = record_evaluator.evaluate_records()
+            self.model_exporter.export_records_report(self.af_type, self.model_type, record_reports)
             record_evaluator = ModelRecordColorLabeler(self.af_strategy, self.af_type, self.model_type, model=saved_model, data_set_name=data_set_name)
             record_evaluator.label_records(export_path=epoch_path)
 
@@ -94,9 +95,10 @@ class MLPipeline:
     model = self.model_exporter.load_model(target_path=os.path.join(self.model_exporter.export_path, 'model'))
     record_evaluator = ModelRecordEvaluator(self.af_strategy, self.af_type, self.model_type, model=model, data_set_name=data_set_name)
 
-    test_record_acc = record_evaluator.evaluate_records()
+    test_record_acc, record_reports = record_evaluator.evaluate_records()
     self.model_exporter.export_evaluation_report(self.model_exporter.get_max_evaluation('record_acc'), self.af_type,
                                                  self.model_type, 'record_acc')
+    self.model_exporter.export_records_report(self.af_type, self.model_type, record_reports)
 
     _, fragment_time, record_time = record_evaluator.time_records(shift=30)
     self.model_exporter.export_evaluation_report(fragment_time, self.af_type, self.model_type, 'fragment_time')
