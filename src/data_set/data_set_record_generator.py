@@ -7,7 +7,6 @@ from charset_normalizer.md import annotations
 from src.audio_features.types import ArgumentationTypes
 from src.data_set.data_set_file_worker import DataSetFileWorker
 
-
 from src.definitions import sr as SR, frame_length, hop_length, labels
 
 
@@ -36,19 +35,20 @@ class DataSetRecordGenerator(DataSetFileWorker):
     with open(path, "w", encoding="utf-8") as f:
       json.dump(annotation, f, ensure_ascii=False, indent=2)
 
-
-  def generate_test_record(self, except_sets: list['str'] = []):
-    self.logger.log('Start argumentation...')
-
+  def generate_test_record(self, except_sets: list['str'] = [], except_labels: list[str] = [], out_path: str = None):
     between_records = []
     annotations = {}
     label_order = labels.copy()
+    for label in except_labels:
+      label_order.remove(label)
     label_order.remove('noise')
     label_records = [[] for _ in label_order]
 
     for signal, sr, set_name, label, path, file in self.read_data_set(log=False):
       # transformations are only for train set
       if set_name in except_sets:
+        continue
+      if label in except_labels:
         continue
       if label == 'noise':
         between_records.append(signal)
@@ -58,9 +58,7 @@ class DataSetRecordGenerator(DataSetFileWorker):
       annotations[label] = []
 
     test_record, index = self._get_random(between_records)
-    print('--test_record->', len(test_record))
     test_record = self.split_signal(test_record, 0.5)
-    print('--test_record->', len(test_record))
     between_records = self._remove_by_index(between_records, index)
     timestamp = self._get_durations(0, test_record)[1]
 
@@ -84,8 +82,5 @@ class DataSetRecordGenerator(DataSetFileWorker):
       test_record = np.concatenate((test_record, record))
       test_record = np.concatenate((test_record, between_record))
 
-    self.write_signal(test_record, SR, self.get_in_path(), f'test')
-    self._sve_annotation(annotation=annotations, path=self.files.join(self.get_in_path(),  f'test.annotation.json'))
-
-    self.logger.log('End argumentation!')
-
+    file_name = self.write_signal(test_record, SR, out_path, f'test')
+    self._sve_annotation(annotation=annotations, path=file_name.replace('.wav', '.annotation.json'))

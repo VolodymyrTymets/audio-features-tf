@@ -1,6 +1,6 @@
 ASSETS_PATH = 'assets'
 
-sr = 22050
+sr = 8000
 DURATION = 0.05
 FRAGMENT_LENGTH = int(sr / (1 / DURATION))
 
@@ -12,7 +12,9 @@ split_frequency = 2000
 n_mels = 64
 n_mfcc = 64
 
-labels = ['noise', 'stimulation', 'wrist_extension', 'ecg']
-labels_colors = ['blue', 'red', 'green', 'black', 'orange']
-labels_annotation = []
+distance_points = [5, 10, 15]
+labels = ['noise', 'stimulation', 'wrist_extension', 'ecg'] + [str(x) for x in distance_points]
+labels_colors = ['blue', 'red', 'green', 'black'] + ['orange'] * len(distance_points)
+labels_annotation = [str(x) for x in distance_points]
+labels_annotation_legend = 'Distance Points'
 sub_sets = ['train', 'test']

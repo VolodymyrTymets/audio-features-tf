@@ -16,7 +16,8 @@ from src.neural_network.model.model_builder import ModelBuilder
 from src.neural_network.model.model_evaluator import ModelEvaluator
 from src.neural_network.model.mode_exporter import MoldeExporter
 from src.audio_features.strategy.af_strategy_factory import AFStrategyFactory
-from src.neural_network.model.model_record_evaluator import ModelRecordEvaluator, ModelRecordColorLabeler
+from src.neural_network.model.model_record_evaluator import ModelRecordEvaluator
+from src.neural_network.model.model_record_label import ModelRecordColorLabeler
 
 # Set the seed value for experiment reproducibility.
 seed = 42

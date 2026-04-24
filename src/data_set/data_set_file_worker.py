@@ -25,11 +25,17 @@ class DataSetFileWorker:
     file_name = self.files.join(out_path, f'{prefix}_' + uuid.uuid4().hex + '.wav')
     self.logger.log(f'--> write to: {file_name}')
     self.wave_file.write(file_name, signal, sr)
+    return file_name
 
   def read_data_set(self, log: bool = True):
     for set_name in self.set_names:
       for label in self.labels:
-        path = self.files.join(ASSETS_PATH, self.in_path, set_name, label)
+        try:
+          path = self.files.join(ASSETS_PATH, self.in_path, set_name, str(label))
+        except Exception as e:
+          print('Error in label:', [ASSETS_PATH, self.in_path, set_name, label])
+          print(e)
+          continue
         files = self.files.get_only_files(path)
 
         for file in files:
